@@ -15,6 +15,22 @@ config RPMSG_CHAR
 	  in /dev. They make it possible for user-space programs to send and
 	  receive rpmsg packets.
 
+config RPMSG_ARM
+        tristate "ARM RPMSG driver"
+        select RPMSG
+        depends on HAS_IOMEM
+        depends on MAILBOX
+        help
+          Enables RPMSG client support for ARM Message Handling Unit (MHUv2.1)
+          based systems. This driver implements inter-processor communication
+          between application processors and remote processors using ARM's
+          MHUv2.1 hardware as the physical transport medium. The implementation
+          leverages the mailbox subsystem for message passing.
+
+          Select Y here to enable IPC support for ARM platforms using MHUv2.1
+          hardware blocks. Requires IO memory management and mailbox subsystem
+          support.
+
 config RPMSG_CTRL
 	tristate "RPMSG control interface"
 	depends on RPMSG && ( RPMSG_CHAR || RPMSG_CHAR=n )

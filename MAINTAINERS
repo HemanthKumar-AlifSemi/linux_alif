@@ -2042,6 +2042,7 @@ F:	drivers/crypto/alif-crc.c
 F:	drivers/hwspinlock/alif_hwsem.c
 F:	drivers/iio/dac/ensemble-dac.c
 F:	drivers/regulator/ensemble-regulator.c
+F:	drivers/rpmsg/rpmsg_arm_mailbox.c
 F:	drivers/rtc/rtc-dw-apb.c
 F:	drivers/usb/dwc3/dwc3-ensemble.c
 F:	sound/soc/alif/*
