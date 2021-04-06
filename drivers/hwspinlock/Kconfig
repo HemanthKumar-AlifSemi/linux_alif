@@ -63,4 +63,13 @@ config HSEM_U8500
 
 	  If unsure, say N.
 
+config HWSEM_ALIF
+	tristate "Alif hardware semaphore"
+	help
+	  Say y here to support the Alif hardware semaphore functionality on the SoC. The HWSEM
+	  provides a mechanism for coordinating concurrency between processor cores when accessing
+	  shared resources. It includes 16 HWSEM modules with individual interrupt requests. Each
+	  module supports atomic acquire, release, and reset functions, single-processor access,
+	  and an internal acquisition counter.
+
 endif # HWSPINLOCK
