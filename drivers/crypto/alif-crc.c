@@ -35,16 +35,18 @@
 #define CRC_INIT_VALUE_CRC16_CCITT    0x1b
 #define CRC_INIT_VALUE_CRC8           0x1
 
-#define CRC32_POLY_CRC32        1
-#define CRC32_POLY_CRC32C       2
-#define CRC16_POLY_CRC16        3
-#define CRC16_POLY_CRC16_CCITT  4
-#define CRC8_POLY_CRC8          5
+#define CRC32_POLY_CRC32             1
+#define CRC32_POLY_CRC32C            2
+#define CRC16_POLY_CRC16             3
+#define CRC16_POLY_CRC16_CCITT       4
+#define CRC8_POLY_CRC8               5
+#define CRC32_POLY_CRC32_LINUX       6
 
 struct alif_crc {
 	struct device    *dev;
-	/* lock to protect access to the hardware */
 	spinlock_t lock;
+	u8 extra_data[sizeof(u32)];
+	u32 num_extra;
 };
 
 struct alif_crc_ctx {
@@ -61,6 +63,20 @@ struct alif_crc_desc_ctx {
 struct alif_crc *crc_init;
 void __iomem *regs;
 
+static u32 bit_reflect(u32 input)
+{
+	u32 refin = 0;
+	u32 bit;
+	unsigned int i;
+
+	for (i = 0; i < 32; i++) {
+		bit = (input >> i) & 1;
+		bit = bit << (32 - (i + 1));
+		refin |= bit;
+	}
+	return refin;
+}
+
 static int crc32_cra_init(struct crypto_tfm *tfm)
 {
 	struct alif_crc_ctx *mtx = crypto_tfm_ctx(tfm);
@@ -72,9 +88,21 @@ static int crc32_cra_init(struct crypto_tfm *tfm)
 	return 0;
 }
 
+static int crc32_cra_init_linux(struct crypto_tfm *tfm)
+{
+	struct alif_crc_ctx *mtx = crypto_tfm_ctx(tfm);
+
+	mtx->key = 0x0;
+	mtx->poly = CRC32_POLY_CRC32_LINUX;
+	mtx->init = CRC_INIT_VALUE_CRC32;
+
+	return 0;
+}
+
 static int crc32c_cra_init(struct crypto_tfm *tfm)
 {
 	struct alif_crc_ctx *mtx = crypto_tfm_ctx(tfm);
+
 
 	mtx->key = 0xffffffff;
 	mtx->poly = CRC32_POLY_CRC32C;
@@ -134,24 +162,26 @@ static int crc_init_crc_ctx(struct shash_desc *desc)
 	struct alif_crc_desc_ctx *ctx = shash_desc_ctx(desc);
 	struct alif_crc_ctx *mctx = crypto_shash_ctx(desc->tfm);
 	struct alif_crc *crc = ctx->crc;
-	u32 key_value;
 
 	ctx->crc = crc_init;
 
-	key_value = mctx->key;
-
-
 	spin_lock(&crc->lock);
 
-	/* set the seed */
-	writel(mctx->key, regs + CRC_SEED);
+	if (mctx->poly == CRC32_POLY_CRC32_LINUX)
+		writel(bit_reflect(mctx->key), regs + CRC_SEED);
+	else
+		writel(mctx->key, regs + CRC_SEED);
 
-	/* set alg, and load */
 	writel(mctx->init, regs + CRC_CTRL);
 
-	ctx->partial_result = readl(regs + CRC_RESULT);
+	if (mctx->poly == CRC32_POLY_CRC32_LINUX)
+		ctx->partial_result = mctx->key ^ (~0);
+	else
+		ctx->partial_result = readl(regs + CRC_RESULT);
 
 	spin_unlock(&crc->lock);
+
+	ctx->crc->num_extra = 0;
 
 	return 0;
 }
@@ -170,23 +200,32 @@ static int crc_update(struct shash_desc *desc, const u8 *datain,
 			    unsigned int length)
 {
 	struct alif_crc_desc_ctx *ctx = shash_desc_ctx(desc);
-	struct alif_crc_ctx *mctx = crypto_shash_ctx(desc->tfm);
 	struct alif_crc *crc = ctx->crc;
 	unsigned int i;
 	u32 value;
 	u32 num_writes;
 	u32 *d32;
-	u32 result;
-	u32 extra_bytes;
+	u8 *data;
 
-	if (datain == NULL)
+	if (datain == NULL || length == 0)
 		return 0;
 
+	data = kmalloc(length + 4, GFP_KERNEL);
+
+	if (data == NULL)
+		return 0;
+
+	if (crc->num_extra > 0)
+		memcpy(data, crc->extra_data, crc->num_extra);
+
+	memcpy(data + crc->num_extra, datain, length);
+
+	length += crc->num_extra;
 
 	num_writes = length / sizeof(u32);
-	extra_bytes = length % sizeof(u32);
+	crc->num_extra = length % sizeof(u32);
 
-	d32 = (u32 *)datain;
+	d32 = (u32 *)data;
 
 	spin_lock(&crc->lock);
 
@@ -200,17 +239,10 @@ static int crc_update(struct shash_desc *desc, const u8 *datain,
 
 	spin_unlock(&crc->lock);
 
-	if (extra_bytes) {
-		if (mctx->poly == CRC32_POLY_CRC32) {
-			result = ctx->partial_result ^ (~0);
-			ctx->partial_result = crc32_update_unaligned
-			(result, datain + (num_writes * sizeof(u32)), extra_bytes);
-		} else {
-			result = ctx->partial_result ^ (~0);
-			ctx->partial_result = crc32c_update_unaligned
-			(result, datain + (num_writes * sizeof(u32)), extra_bytes);
-		}
-	}
+	if (crc->num_extra)
+		memcpy(crc->extra_data, d32, crc->num_extra);
+
+	kfree(data);
 
 	return 0;
 }
@@ -245,15 +277,30 @@ static int crc_final(struct shash_desc *desc, u8 *out)
 {
 	struct alif_crc_desc_ctx *ctx = shash_desc_ctx(desc);
 	struct alif_crc_ctx *mctx = crypto_shash_ctx(desc->tfm);
+	struct alif_crc *crc = ctx->crc;
+	u32 result;
 
-	if (mctx->poly == CRC32_POLY_CRC32 || mctx->poly == CRC32_POLY_CRC32C) {
-		put_unaligned_le32(ctx->partial_result, out);
-	} else if (mctx->poly == CRC16_POLY_CRC16 ||
-		mctx->poly == CRC16_POLY_CRC16_CCITT) { /* 16 bit crc */
-		put_unaligned_le16(ctx->partial_result, out);
-	} else { /* 8 bit */
-		*out = (u8)ctx->partial_result;
+	if (crc->num_extra > 0) {
+		result = ctx->partial_result ^ (~0);
+		if (mctx->poly == CRC32_POLY_CRC32 || mctx->poly == CRC32_POLY_CRC32_LINUX)
+			ctx->partial_result = crc32_update_unaligned
+			(result, crc->extra_data, crc->num_extra);
+		else
+			ctx->partial_result = crc32c_update_unaligned
+			(result, crc->extra_data, crc->num_extra);
+
 	}
+
+	if (mctx->poly == CRC32_POLY_CRC32_LINUX)
+		ctx->partial_result = ctx->partial_result ^ (~0);
+
+	if (mctx->poly == CRC32_POLY_CRC32 || mctx->poly == CRC32_POLY_CRC32C ||
+		mctx->poly == CRC32_POLY_CRC32_LINUX)
+		put_unaligned_le32(ctx->partial_result, out);
+	else if (mctx->poly == CRC16_POLY_CRC16 || mctx->poly == CRC16_POLY_CRC16_CCITT)
+		put_unaligned_le16(ctx->partial_result, out);
+	else
+		*out = (u8)ctx->partial_result;
 
 	return 0;
 }
@@ -317,6 +364,27 @@ static struct shash_alg crc_alg[] = {
 	{
 	.setkey         = crc_setkey,
 	.init           = crc_init_crc_ctx,
+	.update         = crc_update,
+	.final          = crc_final,
+	.finup          = crc_finup,
+	.digest         = crc_digest,
+	.descsize       = sizeof(struct alif_crc_desc_ctx),
+	.digestsize     = CHKSUM_DIGEST_SIZE,
+	.base           = {
+		.cra_name               = "alif-crc-linux",
+		.cra_driver_name        = DRIVER_NAME,
+		.cra_priority           = 100,
+		.cra_flags		= CRYPTO_ALG_OPTIONAL_KEY,
+		.cra_blocksize          = CHKSUM_BLOCK_SIZE,
+		.cra_alignmask          = 3,
+		.cra_ctxsize            = sizeof(struct alif_crc_ctx),
+		.cra_module             = THIS_MODULE,
+		.cra_init               = crc32_cra_init_linux,
+	}
+	},
+	{
+	.setkey         = crc_setkey,
+	.init           = crc_init_crc_ctx,
 	.update         = crc16_update,
 	.final          = crc_final,
 	.finup          = crc_finup,
@@ -359,7 +427,6 @@ static struct shash_alg crc_alg[] = {
 	{
 	.setkey         = crc_setkey,
 	.init           = crc_init_crc_ctx,
-	/* The update function is same for crc8 and 16 */
 	.update         = crc16_update,
 	.final          = crc_final,
 	.finup          = crc_finup,
