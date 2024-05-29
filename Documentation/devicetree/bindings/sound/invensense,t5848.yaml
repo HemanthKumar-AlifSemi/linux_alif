@@ -1,0 +1,56 @@
+# SPDX-License-Identifier: GPL-2.0-only OR BSD-2-Clause
+%YAML 1.2
+---
+$id: http://devicetree.org/schemas/sound/invensense,t5848.yaml#
+$schema: http://devicetree.org/meta-schemas/core.yaml#
+
+title: InvenSense T5848 Mems Mic
+
+description: |
+  The T5848 is a multi-mode, low noise digital MEMS microphone
+  There are no software configuration options for this device,
+  indeed, the only host connection is the I2S interface.
+
+  The slave serial data port’s format is I²S, two’s complement.
+  There must be 64 SCK cycles in each stereo WS frame when operating in
+  High Quality Mode and 48 SCK cycles per frame in Low Power Mode.
+
+maintainers:
+  - Hemanth.Kumar<hemanth@alifsemi.com>
+
+properties:
+  compatible:
+    enum:
+      - invensense,t5848
+
+  '#sound-dai-cells':
+    const: 0
+
+required:
+  - compatible
+
+additionalProperties: false
+
+examples:
+  - |
+    t5848: acodec {
+    	#sound-dai-cells = <0>;
+    	compatible = "invensense,t5848";
+    };
+
+    /* Example of a "simple-audio-card" */
+    sound-memsmic {
+    	compatible = "simple-audio-card";
+    	simple-audio-card,name = "mems-mic";
+    	simple-audio-card,format = "i2s";
+    	simple-audio-card,frame-master = <&cpudai_1>;
+    	simple-audio-card,bitclock-master = <&cpudai_1>;
+
+    	cpudai_1: simple-audio-card,cpu {
+    		sound-dai = <&i2s3>;
+    	};
+
+    	mcodec: simple-audio-card,codec {
+    		sound-dai = <&t5848>;
+    	};
+    };
