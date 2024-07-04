@@ -1,0 +1,23 @@
+# SPDX-License-Identifier: GPL-2.0-only
+menuconfig ARCH_ENSEMBLE
+	bool "Alif Ensemble SoCs"
+	select ARCH_SPARSEMEM_ENABLE
+	select NEED_MACH_MEMORY_H
+	select HIGHMEM
+	select PINCTRL
+	select PINCTRL_ENSEMBLE
+	select GPIOLIB
+	select ARM_AMBA
+	select ARM_GIC
+	select ARM_GLOBAL_TIMER
+	select NO_IOPORT_MAP
+	select AUTO_ZRELADDR
+	select TIMER_OF
+	select COMMON_CLK
+	select GENERIC_CLOCKEVENTS
+	select MULTI_IRQ_HANDLER
+	select SPARSE_IRQ
+	select USE_OF
+	help
+	  This option enables support for tiny linux based systems using Cortex
+	  A32 processor.
