@@ -1851,6 +1851,15 @@ config SND_SOC_SRC4XXX_I2C
 config SND_SOC_SRC4XXX
 	tristate
 
+config SND_SOC_T5848
+	tristate "InvenSense T5848 MEMS I2S Microphone"
+	help
+	  Enable support for TDK InvenSense T5848 MEMS I2S
+	  Microphone.The T5848 is a low noise, high AOP I2S microphon
+	  with a 2-bit PCM output for direct connection to a wide variety of
+	  SoCs. It also features Acoustic Activity Detect (AAD), a new
+	  ultra-low power edge processing feature consuming as low as 20 µA.
+
 config SND_SOC_SSM2305
 	tristate "Analog Devices SSM2305 Class-D Amplifier"
 	help

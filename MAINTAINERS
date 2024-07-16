@@ -2028,12 +2028,15 @@ F:	arch/arm64/boot/dts/airoha/
 ARM/ALIF SEMICONDUCTOR MACHINE SUPPORT
 M:	Hemanth Kumar <hemanth@alifsemi.com>
 F:	Documentation/devicetree/bindings/hwlock/alif,hwsem.yaml
+F:	Documentation/devicetree/bindings/iio/dac/alif,ensemble-dac.yaml
 F:	Documentation/devicetree/bindings/rtc/snps,designware-rtc.yaml
 F:	Documentation/devicetree/bindings/sound/invensense,t5848.yaml
 F:	Documentation/devicetree/bindings/usb/alif,ensemble-usb3.yaml
 F:	drivers/hwspinlock/alif_hwsem.c
+F:	drivers/iio/dac/ensemble-dac.c
 F:	drivers/rtc/rtc-dw-apb.c
 F:	drivers/usb/dwc3/dwc3-ensemble.c
+F:	sound/soc/codecs/t5848.c
 
 ARM/Allwinner SoC Clock Support
 M:	Emilio López <emilio@elopez.com.ar>
@@ -2120,11 +2123,6 @@ F:	drivers/pinctrl/meson/
 F:	drivers/rtc/rtc-meson*
 F:	drivers/soc/amlogic/
 N:	meson
-
-ARM/ALIF SEMICONDUCTOR MACHINE SUPPORT
-M:	Hemanth Kumar <hemanth@alifsemi.com>
-F:	drivers/iio/dac/ensemble-dac.c
-F:	Documentation/devicetree/bindings/iio/dac/alif,ensemble-dac.yaml
 
 ARM/Annapurna Labs ALPINE ARCHITECTURE
 M:	Antoine Tenart <atenart@kernel.org>
