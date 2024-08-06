@@ -32,6 +32,10 @@ properties:
     oneOf:
       - items:
           - enum:
+              - alif,ensemble-dw-uart
+          - const: snps,dw-apb-uart
+      - items:
+          - enum:
               - renesas,r9a06g032-uart
               - renesas,r9a06g033-uart
           - const: renesas,rzn1-uart

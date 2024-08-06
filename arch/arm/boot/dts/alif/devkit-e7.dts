@@ -1,0 +1,293 @@
+// SPDX-License-Identifier: (GPL-2.0+)
+/*
+ * Copyright (C) 2024 Alif Semiconductor
+ */
+/dts-v1/;
+
+#include "ensemble-e7.dtsi"
+/ {
+	model = "devkit-e7";
+	compatible = "alif,ensemble";
+
+	aliases {
+		serial0 = &uart4;
+	};
+
+	regulators {
+		reg_3p3v: reg3p3v {
+			compatible = "regulator-fixed";
+			regulator-name = "fixed-3.3V";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			regulator-always-on;
+		};
+		reg_2p7v: reg27 {
+			compatible = "regulator-fixed";
+			regulator-name = "fixed-2.7V";
+			regulator-min-microvolt = <2700000>;
+			regulator-max-microvolt = <2700000>;
+			regulator-always-on;
+		};
+		reg_1p8v: reg18 {
+			compatible = "regulator-fixed";
+			regulator-name = "fixed-1.8V";
+			regulator-min-microvolt = <1800000>;
+			regulator-max-microvolt = <1800000>;
+			regulator-always-on;
+		};
+		reg_1p2v: reg12 {
+			compatible = "regulator-fixed";
+			regulator-name = "fixed-1.2V";
+			regulator-min-microvolt = <1200000>;
+			regulator-max-microvolt = <1200000>;
+			regulator-always-on;
+		};
+	};
+
+	chosen {
+		bootargs = "console=ttyS0,115200n8 \
+		root=mtd:physmap-flash.0 \
+		rootfstype=cramfs ro loglevel=9";
+		stdout-path = "serial0::115200n8";
+	};
+
+	sph0645: acodec {
+		#sound-dai-cells = <0>;
+		compatible = "knowles,sph0645";
+	};
+
+	sound-memsmic {
+		compatible = "simple-audio-card";
+		simple-audio-card,name = "mems-mic";
+		simple-audio-card,format = "i2s";
+		simple-audio-card,frame-master = <&cpudai_1>;
+		simple-audio-card,bitclock-master = <&cpudai_1>;
+
+		cpudai_1: simple-audio-card,cpu {
+			sound-dai = <&i2s2>;
+		};
+
+		mcodec: simple-audio-card,codec {
+			sound-dai = <&sph0645>;
+		};
+	};
+};
+
+&pdm0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pdm0>;
+};
+
+&uart0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart0>;
+};
+
+&uart2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart2>;
+	status = "okay";
+};
+
+&uart3 {
+	status = "okay";
+};
+
+&uart4 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart4>;
+	status = "okay";
+};
+
+&i2c0 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_i2c0>;
+	status = "okay";
+	bme680@76{
+		compatible = "bosch,bme680";
+		reg = <0x76>;
+	};
+};
+
+&i2c1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_i2c1>;
+};
+
+&i2s3 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_i2s3>;
+};
+
+&pinmux {
+	/* syntax:
+	pinmux = < PIN_NAME	<8bit pad-config value> >
+		8bit pad-config values:
+		bit 0:	0 -> Read disable,
+			1 -> Read enable
+		bit 1:	0 -> Schmitt trigger disable
+			1 -> Schmitt trigger enable
+		bit 2:	0 -> Slew rate slow
+			1 -> Slew rate fast
+		bit 3 and 4:
+			00 -> High Impedance
+			01 -> Pull up
+			10 -> Pull down
+			11 -> Bus repeater
+		bit 5 and 6: Output drive strength
+			00 -> 2mA
+			01 -> 4mA
+			10 -> 8mA
+			11 -> 12mA
+		bit 7:	0 -> Push-pull
+			1 -> Open drain
+
+	Example: The below two lines set Read enable, schmitt
+	trigger,slow slew rate, High Impedance, output drive
+	strength of 4mA, and push-pull driver.
+	PIN_P1_0__UART2_RX_A		0x23
+	PIN_P1_1__UART2_TX_A		0x23
+	*/
+
+	pinctrl_eth0: eth0grp {
+		pinmux = <
+			PIN_P11_2__ETH_MDC_B		0x23
+			PIN_P11_1__ETH_MDIO_B		0x23
+			PIN_P11_3__ETH_RXD0_B		0x23
+			PIN_P11_4__ETH_RXD1_B		0x23
+			PIN_P11_5__ETH_CRS_DV_B		0x23
+			PIN_P11_7__ETH_IRQ_B		0x23
+			PIN_P6_0__ETH_TXD0_A		0x23
+			PIN_P10_5__ETH_TXD1_B		0x23
+			PIN_P10_6__ETH_TXEN_B		0x23
+			PIN_P11_0__ETH_REFCLK_B		0x23
+			PIN_P11_6__ETH_RST_B		0x23
+		>;
+	};
+
+	pinctrl_uart0: uart0grp {
+		pinmux = <
+			PIN_P1_4__UART0_RX_B	0x23
+			PIN_P1_5__UART0_TX_B	0x23
+		>;
+	};
+
+	pinctrl_uart2: uart2grp {
+		pinmux = <
+			PIN_P1_0__UART2_RX_A	0x23
+			PIN_P1_1__UART2_TX_A	0x23
+		>;
+	};
+
+	pinctrl_uart4: uart4grp {
+		pinmux = <
+			PIN_P12_1__UART4_RX_B	0x23
+			PIN_P12_2__UART4_TX_B	0x23
+		>;
+	};
+
+	pinctrl_i2c0: i2c0grp {
+		pinmux = <
+			PIN_P3_4__I2C0_SCL_B	0x23
+			PIN_P3_5__I2C0_SDA_B	0x23
+		>;
+	};
+	pinctrl_i2c1: i2c1grp {
+		pinmux = <
+			PIN_P7_2__I2C1_SDA_C	0x0
+			PIN_P7_3__I2C1_SCL_C	0x0
+		>;
+	};
+
+	pinctrl_i2s3: i2s3grp {
+		pinmux = <
+			PIN_P8_6__I2S3_SCLK_B	0x0
+			PIN_P8_7__I2S3_WS_B	0x0
+			PIN_P9_0__I2S3_SDI_B	0x0
+		>;
+	};
+
+	pinctrl_i3c0: i3c0grp {
+		pinmux = <
+			PIN_P7_6__I3C_SDA_D	0x0
+			PIN_P7_7__I3C_SCL_D	0x0
+		>;
+	};
+
+	pinctrl_spi3: spi3grp {
+		pinmux = <
+			PIN_P12_7__GPIO		0x0
+			PIN_P12_6__SPI3_SCLK_A	0x0
+			PIN_P12_4__SPI3_MISO_A	0x23
+			PIN_P12_5__SPI3_MOSI_A	0x0
+		>;
+	};
+
+	pinctrl_pdm0: pdm0grp {
+		pinmux = <
+			PIN_P6_7__PDM_C2_A	0x0
+			PIN_P5_4__PDM_D2_B	0x0
+		>;
+	};
+
+	pinctrl_cdc200_0: cdc200_0grp {
+		pinmux = <
+			PIN_P5_3__CDC_DE_A	0x23
+			PIN_P5_4__CDC_PCLK_A	0x23
+			PIN_P4_1__CDC_HSYNC_B	0x23
+			PIN_P8_2__CDC_D2_A	0x23
+			PIN_P8_3__CDC_D3_A	0x23
+			PIN_P8_4__CDC_D4_A	0x23
+			PIN_P8_5__CDC_D5_A	0x23
+			PIN_P9_2__CDC_D10_A	0x23
+			PIN_P9_3__CDC_D11_A	0x23
+			PIN_P9_4__CDC_D12_A	0x23
+			PIN_P9_5__CDC_D13_A	0x23
+			PIN_P13_2__CDC_D18_B	0x23
+			PIN_P13_3__CDC_D19_B	0x23
+			PIN_P13_4__CDC_D20_B	0x23
+			PIN_P13_5__CDC_D21_B	0x23
+			PIN_P13_7__CDC_D23_B	0x23
+			PIN_P13_6__CDC_D22_B	0x23
+			PIN_P13_1__CDC_D17_B	0x23
+			PIN_P13_0__CDC_D16_B	0x23
+			PIN_P9_7__CDC_D15_A	0x23
+			PIN_P9_6__CDC_D14_A	0x23
+			PIN_P9_1__CDC_D9_A	0x23
+			PIN_P9_0__CDC_D8_A	0x23
+			PIN_P8_7__CDC_D7_A	0x23
+			PIN_P8_6__CDC_D6_A	0x23
+			PIN_P8_1__CDC_D1_A	0x23
+			PIN_P8_0__CDC_D0_A	0x23
+			PIN_P5_6__CDC_VSYNC_A	0x23
+		>;
+	};
+
+	pinctrl_camera: camera0grp {
+		pinmux = <
+			PIN_P10_2__CAM_PCLK_B	0x0
+			PIN_P8_2__CAM_D2_B	0x0
+			PIN_P8_3__CAM_D3_B	0x0
+			PIN_P8_4__CAM_D4_B	0x0
+			PIN_P8_5__CAM_D5_B	0x0
+			PIN_P9_2__CAM_D10_B	0x0
+			PIN_P9_3__CAM_D11_B	0x0
+			PIN_P9_4__CAM_D12_B	0x0
+			PIN_P9_5__CAM_D13_B	0x0
+			PIN_P9_7__CAM_D15_B	0x0
+			PIN_P9_6__CAM_D14_B	0x0
+			PIN_P9_1__CAM_D9_B	0x0
+			PIN_P9_0__CAM_D8_B	0x0
+			PIN_P8_7__CAM_D7_B	0x0
+			PIN_P8_6__CAM_D6_B	0x0
+			PIN_P8_1__CAM_D1_B	0x0
+			PIN_P8_0__CAM_D0_B	0x0
+			PIN_P10_1__CAM_VSYNC_B	0x0
+			PIN_P10_0__CAM_HSYNC_B	0x0
+			PIN_P10_3__CAM_XVCLK_B	0x0
+		>;
+	};
+
+};
