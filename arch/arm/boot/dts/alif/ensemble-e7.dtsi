@@ -23,6 +23,13 @@
 			enable-method = "psci";
 			next-level-cache = <&L2_0>;
 		};
+		cpu@1 {
+			compatible = "arm,armv8";
+			reg = <1>;
+			device_type = "cpu";
+			enable-method = "psci";
+			next-level-cache = <&L2_0>;
+		};
 	};
 
 	psci {
@@ -120,6 +127,7 @@
 					 IRQ_TYPE_LEVEL_LOW)>,
 				<GIC_PPI 10 (GIC_CPU_MASK_SIMPLE(2) |
 					 IRQ_TYPE_LEVEL_LOW)>;
+		arm,cpu-registers-not-fw-configured;
 	};
 
 	apb@1a600000 {
