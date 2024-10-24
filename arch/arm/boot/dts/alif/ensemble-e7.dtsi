@@ -245,14 +245,16 @@
 		eth0: eth@0x48100000 {
 			compatible = "snps,dwc-qos-ethernet-4.10";
 			reg = <0x48100000 0x2000>;
-			clock-names = "phy_ref_clk", "syst_pclk";
-			clocks = <&psclks ENSEMBLE_SYST_HCLK>,
-				 <&psclks ENSEMBLE_SYST_HCLK>;
+			clock-names = "phy_ref_clk", "apb_pclk", "ptp_ref";
+			clocks = <&psclks ENSEMBLE_ETH_CLK>,
+				 <&psclks ENSEMBLE_ETH_CSR_CLK>,
+				 <&psclks ENSEMBLE_100M_CLK>;
 			interrupt-parent = <&gic>;
 			interrupts = <GIC_SPI 137 IRQ_TYPE_LEVEL_HIGH>;
 			max-speed = <100>;
 			phy-handle = <&phy2>;
 			phy-mode = "rmii";
+			mac-address = [92 60 04 02 c3 e6];
 			status = "disabled";
 			mdio{
 				#address-cells = <0x1>;
