@@ -45,10 +45,10 @@
 	};
 
 	chosen {
-		bootargs = "console=ttyS0,115200n8 \
+		bootargs = "console=ttyS2,115200n8 \
 		root=mtd:physmap-flash.0 \
-		rootfstype=cramfs ro loglevel=9";
-		stdout-path = "serial0::115200n8";
+		rootfstype=cramfs ro loglevel=7";
+		stdout-path = "serial2::115200n8";
 	};
 
 	sph0645: acodec {
@@ -125,6 +125,30 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_eth0>;
 	status = "okay";
+};
+
+&adc0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_adc120>;
+	status = "okay";
+};
+
+&adc1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_adc121>;
+	status = "okay";
+};
+
+&adc2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_adc122>;
+	status = "okay";
+};
+
+&adc24 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_adc24>;
+	status = "disabled";
 };
 
 &pinmux {
@@ -293,6 +317,41 @@
 			PIN_P10_1__CAM_VSYNC_B	0x0
 			PIN_P10_0__CAM_HSYNC_B	0x0
 			PIN_P10_3__CAM_XVCLK_B	0x0
+		>;
+	};
+
+	pinctrl_adc120: adc120grp {
+		pinmux = <
+			PIN_P0_0__ANA_S0        0x23
+			PIN_P0_1__ANA_S1        0x23
+			PIN_P0_2__ANA_S2        0x23
+			PIN_P0_3__ANA_S3        0x23
+			PIN_P0_4__ANA_S4        0x23
+			PIN_P0_5__ANA_S5        0x23
+		>;
+	};
+	pinctrl_adc121: adc121grp {
+		pinmux = <
+			PIN_P0_6__ANA_S6        0x23
+			PIN_P1_2__ANA_S10       0x23
+			PIN_P1_3__ANA_S11       0x23
+		>;
+	};
+	pinctrl_adc122: adc122grp {
+		pinmux = <
+			PIN_P1_4__ANA_S12       0x23
+		>;
+	};
+	pinctrl_adc24: adc24grp {
+		pinmux = <
+			PIN_P0_0__ANA_S0        0x23
+			PIN_P0_1__ANA_S1        0x23
+			PIN_P0_2__ANA_S2        0x23
+			PIN_P0_3__ANA_S3        0x23
+			PIN_P0_4__ANA_S4        0x23
+			PIN_P0_5__ANA_S5        0x23
+			PIN_P0_6__ANA_S6        0x23
+			PIN_P0_7__ANA_S7        0x23
 		>;
 	};
 

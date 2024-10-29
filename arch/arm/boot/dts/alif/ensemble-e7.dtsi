@@ -1165,22 +1165,49 @@
 		};
 
 		adc0: adc12_0@49020000 {
-			compatible = "alif,bolt-adc";
+			compatible = "alif,adc-dev";
 			reg = <0x49020000 0x100>;
+			interrupt-parent = <&gic>;
+			interrupts = <0 140 IRQ_TYPE_LEVEL_HIGH>,
+				     <0 143 IRQ_TYPE_LEVEL_HIGH>,
+				     <0 146 IRQ_TYPE_LEVEL_HIGH>,
+				     <0 149 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&psclks ENSEMBLE_ADC120_CLK>;
 			status = "disabled";
 		};
 
 		adc1: adc12_1@49021000 {
-			compatible = "alif,bolt-adc";
+			compatible = "alif,adc-dev";
 			reg = <0x49021000 0x100>;
+			interrupt-parent = <&gic>;
+			interrupts = <0 141 IRQ_TYPE_LEVEL_HIGH>,
+				     <0 144 IRQ_TYPE_LEVEL_HIGH>,
+				     <0 147 IRQ_TYPE_LEVEL_HIGH>,
+				     <0 150 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&psclks ENSEMBLE_ADC121_CLK>;
 			status = "disabled";
 		};
 
 		adc2: adc12_2@49022000 {
-			compatible = "alif,bolt-adc";
+			compatible = "alif,adc-dev";
 			reg = <0x49022000 0x100>;
+			interrupt-parent = <&gic>;
+			interrupts = <0 142 IRQ_TYPE_LEVEL_HIGH>,
+				     <0 145 IRQ_TYPE_LEVEL_HIGH>,
+				     <0 148 IRQ_TYPE_LEVEL_HIGH>,
+				     <0 151 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&psclks ENSEMBLE_ADC122_CLK>;
+			status = "disabled";
+		};
+
+		adc24: adc24@49027000 {
+			compatible = "alif,adc-dev";
+			reg = <0x49027000 0x100>;
+			interrupt-parent = <&gic>;
+			interrupts = <0 152 IRQ_TYPE_LEVEL_HIGH>,
+				     <0 153 IRQ_TYPE_LEVEL_HIGH>,
+				     <0 154 IRQ_TYPE_LEVEL_HIGH>,
+				     <0 155 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&psclks ENSEMBLE_ADC122_CLK>;
 			status = "disabled";
 		};
