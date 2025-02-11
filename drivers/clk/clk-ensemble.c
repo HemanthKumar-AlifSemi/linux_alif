@@ -15,7 +15,16 @@
 #include <linux/of.h>
 #include <linux/of_address.h>
 #include <linux/of_irq.h>
+#include <linux/sizes.h>
 #include <dt-bindings/clock/alif,ensemble-clock.h>
+
+#define CCPSLV_BASE				0x4902F000
+#define CCPMST_BASE				0x4903F000
+#define CGU_BASE				0x1A602000
+#define VBAT_BASE				0x1A609000
+#define RTC_CLK_DIVIDER				14648
+#define PCLK_FORCE				(1 << 30)
+#define IPCLK_FORCE				(1 << 31)
 
 static struct clk_hw **hws;
 static struct clk_hw_onecell_data *clk_hw_data;
@@ -149,14 +158,15 @@ free_mux:
 static void __init ensemble_clocks_init(struct device_node *ccps_node)
 {
 	struct device_node *np = ccps_node;
-	void __iomem *base, *cgu_base, *ccpmst_base;
+	void __iomem *base, *cgu_base, *ccpmst_base, *vbat_base;
 	struct clk *clk;
 
-	base = ioremap(0x4902F000, 0x1000);
-	cgu_base = ioremap(0x1A602000, 0x100);
-	ccpmst_base = ioremap(0x4903F000, 0x1000);
+	base = ioremap(CCPSLV_BASE, SZ_4K);
+	cgu_base = ioremap(CGU_BASE, SZ_256);
+	ccpmst_base = ioremap(CCPMST_BASE, SZ_4K);
+	vbat_base = ioremap(VBAT_BASE, SZ_4K);
 	/* Enable Peripheral functional clocks and APB interface clocks. */
-	writel(0xC0000000, base);
+	writel(PCLK_FORCE | IPCLK_FORCE, base);
 
 	clk_hw_data = kzalloc(struct_size(clk_hw_data, hws,
 					  ENSEMBLE_CLK_END), GFP_KERNEL);
@@ -190,6 +200,11 @@ static void __init ensemble_clocks_init(struct device_node *ccps_node)
 	hws[ENSEMBLE_160M_CLK] = ensemble_clk_hw_gate("160m_clk", "160m_sclk", cgu_base + 0x14, 20);
 	hws[ENSEMBLE_USB_SCLK] = ensemble_clk_hw_fixed_factor("usb_sclk", "pll_clk3", 1, 24);
 	hws[ENSEMBLE_USB_CLK] = ensemble_clk_hw_gate("usb_clk", "usb_sclk", cgu_base + 0x14, 22);
+
+	hws[ENSEMBLE_RTC_CLK] = ensemble_clk_hw_fixed_factor("s32k_clk",
+				"pll_clk3", 1, RTC_CLK_DIVIDER);
+	hws[ENSEMBLE_S32K_CLK] = ensemble_clk_hw_gate("timer",
+				"s32k_clk", vbat_base + 0x10, 0);
 
 	hws[ENSEMBLE_UART0_CLK_SEL] = ensemble_clk_hw_mux("uart0_sclk",
 				base + 0x8, 8, 1, uart_clk_src_sels,
