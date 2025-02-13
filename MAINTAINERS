@@ -2025,6 +2025,10 @@ S:	Odd Fixes
 F:	arch/arm/boot/dts/airoha/
 F:	arch/arm64/boot/dts/airoha/
 
+ARM/ALIF SEMICONDUCTOR MACHINE SUPPORT
+M:	Hemanth Kumar <hemanth@alifsemi.com>
+F:	Documentation/devicetree/bindings/hwlock/alif,hwsem.yaml
+
 ARM/Allwinner SoC Clock Support
 M:	Emilio López <emilio@elopez.com.ar>
 S:	Maintained
