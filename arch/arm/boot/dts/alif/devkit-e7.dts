@@ -190,6 +190,70 @@
 	status = DAC121_STATUS;
 };
 
+&hwsem0 {
+	status = HWSEM0_STATUS;
+};
+
+&hwsem1 {
+	status = HWSEM1_STATUS;
+};
+
+&hwsem2 {
+	status = HWSEM2_STATUS;
+};
+
+&hwsem3 {
+	status = HWSEM3_STATUS;
+};
+
+&hwsem4 {
+	status = HWSEM4_STATUS;
+};
+
+&hwsem5 {
+	status = HWSEM5_STATUS;
+};
+
+&hwsem6 {
+	status = HWSEM6_STATUS;
+};
+
+&hwsem7 {
+	status = HWSEM7_STATUS;
+};
+
+&hwsem8 {
+	status = HWSEM8_STATUS;
+};
+
+&hwsem9 {
+	status = HWSEM9_STATUS;
+};
+
+&hwsem10 {
+	status = HWSEM10_STATUS;
+};
+
+&hwsem11 {
+	status = HWSEM11_STATUS;
+};
+
+&hwsem12 {
+	status = HWSEM12_STATUS;
+};
+
+&hwsem13 {
+	status = HWSEM13_STATUS;
+};
+
+&hwsem14 {
+	status = HWSEM14_STATUS;
+};
+
+&hwsem15 {
+	status = HWSEM15_STATUS;
+};
+
 &pinmux {
 	/* syntax:
 	pinmux = < PIN_NAME	<8bit pad-config value> >

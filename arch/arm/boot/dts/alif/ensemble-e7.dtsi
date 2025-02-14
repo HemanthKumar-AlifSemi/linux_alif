@@ -1040,6 +1040,7 @@
 		hwsem4: hwsem4@4902e040 {
 			compatible = "alif,hwsem";
 			reg = <0x4902e040 0x4>;
+			reg-names = "hwsem_base";
 			interrupt-parent = <&gic>;
 			interrupts = <0 98 4>;
 			clocks = <&psclks ENSEMBLE_SYST_PCLK>;
@@ -1050,6 +1051,7 @@
 		hwsem5: hwsem5@4902e050 {
 			compatible = "alif,hwsem";
 			reg = <0x4902e050 0x4>;
+			reg-names = "hwsem_base";
 			interrupt-parent = <&gic>;
 			interrupts = <0 99 4>;
 			clocks = <&psclks ENSEMBLE_SYST_PCLK>;
@@ -1060,6 +1062,7 @@
 		hwsem6: hwsem6@4902e060 {
 			compatible = "alif,hwsem";
 			reg = <0x4902e060 0x4>;
+			reg-names = "hwsem_base";
 			interrupt-parent = <&gic>;
 			interrupts = <0 100 4>;
 			clocks = <&psclks ENSEMBLE_SYST_PCLK>;
@@ -1070,6 +1073,7 @@
 		hwsem7: hwsem7@4902e070 {
 			compatible = "alif,hwsem";
 			reg = <0x4902e070 0x4>;
+			reg-names = "hwsem_base";
 			interrupt-parent = <&gic>;
 			interrupts = <0 101 4>;
 			clocks = <&psclks ENSEMBLE_SYST_PCLK>;
@@ -1091,6 +1095,7 @@
 		hwsem9: hwsem9@4902e090 {
 			compatible = "alif,hwsem";
 			reg = <0x4902e090 0x4>;
+			reg-names = "hwsem_base";
 			interrupt-parent = <&gic>;
 			interrupts = <0 103 4>;
 			clocks = <&psclks ENSEMBLE_SYST_PCLK>;
@@ -1101,6 +1106,7 @@
 		hwsem10: hwsem10@4902e0a0 {
 			compatible = "alif,hwsem";
 			reg = <0x4902e0a0 0x4>;
+			reg-names = "hwsem_base";
 			interrupt-parent = <&gic>;
 			interrupts = <0 104 4>;
 			clocks = <&psclks ENSEMBLE_SYST_PCLK>;
@@ -1111,6 +1117,7 @@
 		hwsem11: hwsem11@4902e0b0 {
 			compatible = "alif,hwsem";
 			reg = <0x4902e0b0 0x4>;
+			reg-names = "hwsem_base";
 			interrupt-parent = <&gic>;
 			interrupts = <0 105 4>;
 			clocks = <&psclks ENSEMBLE_SYST_PCLK>;
@@ -1121,6 +1128,7 @@
 		hwsem12: hwsem12@4902e0c0 {
 			compatible = "alif,hwsem";
 			reg = <0x4902e0c0 0x4>;
+			reg-names = "hwsem_base";
 			interrupt-parent = <&gic>;
 			interrupts = <0 106 4>;
 			clocks = <&psclks ENSEMBLE_SYST_PCLK>;
@@ -1131,6 +1139,7 @@
 		hwsem13: hwsem13@4902e0d0 {
 			compatible = "alif,hwsem";
 			reg = <0x4902e0d0 0x4>;
+			reg-names = "hwsem_base";
 			interrupt-parent = <&gic>;
 			interrupts = <0 107 4>;
 			clocks = <&psclks ENSEMBLE_SYST_PCLK>;
@@ -1141,6 +1150,7 @@
 		hwsem14: hwsem14@4902e0e0 {
 			compatible = "alif,hwsem";
 			reg = <0x4902e0e0 0x4>;
+			reg-names = "hwsem_base";
 			interrupt-parent = <&gic>;
 			interrupts = <0 108 4>;
 			clocks = <&psclks ENSEMBLE_SYST_PCLK>;
@@ -1151,6 +1161,7 @@
 		hwsem15: hwsem15@4902e0f0 {
 			compatible = "alif,hwsem";
 			reg = <0x4902e0f0 0x4>;
+			reg-names = "hwsem_base";
 			interrupt-parent = <&gic>;
 			interrupts = <0 109 4>;
 			clocks = <&psclks ENSEMBLE_SYST_PCLK>;
