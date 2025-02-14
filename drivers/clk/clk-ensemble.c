@@ -129,6 +129,9 @@ free_mux:
 #define ensemble_clk_hw_mux(name, reg, shift, width, parents, num_parents) \
 	__ensemble_clk_hw_mux(name, reg, shift, width, parents, num_parents, 0, 0)
 
+#define ensemble_clk_hw_gate_clk_flags(name, parent, reg, shift, flags, gate_flags) \
+	__ensemble_clk_hw_gate(name, parent, reg, shift, flags, gate_flags)
+
 #define ensemble_clk_hw_gate_flags(name, parent, reg, shift, flags) \
 	__ensemble_clk_hw_gate(name, parent, reg, shift, flags, 0)
 
@@ -299,6 +302,47 @@ static void __init ensemble_clocks_init(struct device_node *ccps_node)
 	clk_set_parent(hws[ENSEMBLE_ADC121_CLK]->clk, hws[ENSEMBLE_160M_CLK]->clk);
 	clk_set_parent(hws[ENSEMBLE_ADC122_CLK]->clk, hws[ENSEMBLE_160M_CLK]->clk);
 	clk_set_parent(hws[ENSEMBLE_ADC24_CLK]->clk, hws[ENSEMBLE_160M_CLK]->clk);
+
+	hws[ENSEMBLE_SPI0_SS_IN_SEL_MST_CLK] = ensemble_clk_hw_gate("spi0_ssi_in_sel_clk",
+				"syst_hclk", base + 0x28, 0);
+	hws[ENSEMBLE_SPI1_SS_IN_SEL_MST_CLK] = ensemble_clk_hw_gate("spi1_ssi_in_sel_clk",
+				"syst_hclk", base + 0x28, 1);
+	hws[ENSEMBLE_SPI2_SS_IN_SEL_MST_CLK] = ensemble_clk_hw_gate("spi2_ssi_in_sel_clk",
+				"syst_hclk", base + 0x28, 2);
+	hws[ENSEMBLE_SPI3_SS_IN_SEL_MST_CLK] = ensemble_clk_hw_gate("spi3_ssi_in_sel_clk",
+				"syst_hclk", base + 0x28, 3);
+	hws[ENSEMBLE_SPI0_SS_IN_VAL_MST_CLK] = ensemble_clk_hw_gate("spi0_ssi_in_val_clk",
+				"spi0_ssi_in_sel_clk", base + 0x28, 8);
+	hws[ENSEMBLE_SPI1_SS_IN_VAL_MST_CLK] = ensemble_clk_hw_gate("spi1_ssi_in_val_clk",
+				"spi1_ssi_in_sel_clk", base + 0x28, 9);
+	hws[ENSEMBLE_SPI2_SS_IN_VAL_MST_CLK] = ensemble_clk_hw_gate("spi2_ssi_in_val_clk",
+				"spi2_ssi_in_sel_clk", base + 0x28, 10);
+	hws[ENSEMBLE_SPI3_SS_IN_VAL_MST_CLK] = ensemble_clk_hw_gate("spi3_ssi_in_val_clk",
+				"spi3_ssi_in_sel_clk", base + 0x28, 11);
+	hws[ENSEMBLE_SPI0_SS_IN_SEL_SLV_CLK] = ensemble_clk_hw_gate_clk_flags(
+				"spi0_ssi_slv_in_sel_clk", "syst_hclk", base + 0x28, 0, 0,
+				CLK_GATE_SET_TO_DISABLE);
+	hws[ENSEMBLE_SPI1_SS_IN_SEL_SLV_CLK] = ensemble_clk_hw_gate_clk_flags(
+				"spi1_ssi_slv_in_sel_clk", "syst_hclk", base + 0x28, 1, 0,
+				CLK_GATE_SET_TO_DISABLE);
+	hws[ENSEMBLE_SPI2_SS_IN_SEL_SLV_CLK] = ensemble_clk_hw_gate_clk_flags(
+				"spi2_ssi_slv_in_sel_clk", "syst_hclk", base + 0x28, 2, 0,
+				CLK_GATE_SET_TO_DISABLE);
+	hws[ENSEMBLE_SPI3_SS_IN_SEL_SLV_CLK] = ensemble_clk_hw_gate_clk_flags(
+				"spi3_ssi_slv_in_sel_clk", "syst_hclk", base + 0x28, 3, 0,
+				CLK_GATE_SET_TO_DISABLE);
+	hws[ENSEMBLE_SPI0_SS_IN_VAL_SLV_CLK] = ensemble_clk_hw_gate_clk_flags(
+				"spi0_ssi_slv_in_val_clk", "spi0_ssi_slv_in_sel_clk", base + 0x28,
+				8, 0, CLK_GATE_SET_TO_DISABLE);
+	hws[ENSEMBLE_SPI1_SS_IN_VAL_SLV_CLK] = ensemble_clk_hw_gate_clk_flags(
+				"spi1_ssi_slv_in_val_clk", "spi1_ssi_slv_in_sel_clk", base + 0x28,
+				9, 0, CLK_GATE_SET_TO_DISABLE);
+	hws[ENSEMBLE_SPI2_SS_IN_VAL_SLV_CLK] = ensemble_clk_hw_gate_clk_flags(
+				"spi2_ssi_slv_in_val_clk", "spi2_ssi_slv_in_sel_clk", base + 0x28,
+				10, 0, CLK_GATE_SET_TO_DISABLE);
+	hws[ENSEMBLE_SPI3_SS_IN_VAL_SLV_CLK] = ensemble_clk_hw_gate_clk_flags(
+				"spi3_ssi_slv_in_val_clk", "spi3_ssi_slv_in_sel_clk", base + 0x28,
+				11, 0, CLK_GATE_SET_TO_DISABLE);
 
 	for (int i = 0; i < ENSEMBLE_CLK_END; i++) {
 		if (IS_ERR(hws[i]))
