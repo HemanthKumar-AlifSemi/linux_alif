@@ -326,9 +326,13 @@ void dw_spi_update_config(struct dw_spi *dws, struct spi_device *spi,
 	if (dw_spi_ip_is(dws, PSSI))
 		/* CTRLR0[ 9:8] Transfer Mode */
 		cr0 |= FIELD_PREP(DW_PSSI_CTRLR0_TMOD_MASK, cfg->tmode);
-	else
+	else {
 		/* CTRLR0[11:10] Transfer Mode */
 		cr0 |= FIELD_PREP(DW_HSSI_CTRLR0_TMOD_MASK, cfg->tmode);
+		/* CTRLR0[31] SPI_IS_MST bit */
+		if (spi_controller_is_target(dws->host))
+			cr0 &= ~DW_HSSI_CTRLR0_MST;
+	}
 
 	dw_writel(dws, DW_SPI_CTRLR0, cr0);
 
@@ -902,7 +906,11 @@ int dw_spi_add_host(struct device *dev, struct dw_spi *dws)
 	if (!dws)
 		return -EINVAL;
 
-	host = spi_alloc_host(dev, 0);
+	if (device_property_read_bool(dev, "spi-slave"))
+		host = spi_alloc_slave(dev, 0);
+	else
+		host = spi_alloc_host(dev, 0);
+
 	if (!host)
 		return -ENOMEM;
 
