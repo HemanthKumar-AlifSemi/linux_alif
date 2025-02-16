@@ -6,6 +6,7 @@
 #include <dt-bindings/pinctrl/alif,ensemble-pinfunc.h>
 #include <dt-bindings/clock/alif,ensemble-clock.h>
 #include <dt-bindings/gpio/gpio.h>
+#include "devkit_ex_dct_defines.h"
 / {
 	compatible = "alif,ensemble";
 	interrupt-parent = <&gic>;
@@ -19,13 +20,6 @@
 		cpu@0 {
 			compatible = "arm,armv8";
 			reg = <0>;
-			device_type = "cpu";
-			enable-method = "psci";
-			next-level-cache = <&L2_0>;
-		};
-		cpu@1 {
-			compatible = "arm,armv8";
-			reg = <1>;
 			device_type = "cpu";
 			enable-method = "psci";
 			next-level-cache = <&L2_0>;

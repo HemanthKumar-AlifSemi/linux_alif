@@ -45,10 +45,9 @@
 	};
 
 	chosen {
-		bootargs = "console=ttyS2,115200n8 \
+		bootargs = "console=ttyS0,115200n8 \
 		root=mtd:physmap-flash.0 \
-		rootfstype=cramfs ro loglevel=7";
-		stdout-path = "serial2::115200n8";
+		rootfstype=cramfs ro loglevel=9";
 	};
 
 	sph0645: acodec {
