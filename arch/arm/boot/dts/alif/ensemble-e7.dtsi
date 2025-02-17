@@ -283,12 +283,12 @@
 		};
 
 		spi0: spi@48103000 {
-			compatible = "snps,dwc-ssi-1.03a";
+			compatible = "snps,dwc-ssi-1.01a";
 			reg = <0x48103000 0x1000>;
 			num-cs = <1>;
 			interrupts = <GIC_SPI 126 IRQ_TYPE_LEVEL_HIGH>;
-			clocks = <&psclks ENSEMBLE_SYST_HCLK>;
-			clock-names = "ahb_clk" ;
+			clocks = <&psclks ENSEMBLE_SPI0_SS_IN_VAL_MST_CLK>;
+			clock-names = "ssi_clk" ;
 			reg-io-width = <4>;
 			spi-tx-bus-width = <1>;
 			spi-rx-bus-width = <1>;
@@ -296,12 +296,12 @@
 		};
 
 		spi1: spi@48104000 {
-			compatible = "snps,dwc-ssi-1.03a";
+			compatible = "snps,dwc-ssi-1.01a";
 			reg = <0x48104000 0x1000>;
 			num-cs = <1>;
 			interrupts = <GIC_SPI 127 IRQ_TYPE_LEVEL_HIGH>;
-			clocks = <&psclks ENSEMBLE_SYST_HCLK>;
-			clock-names = "ahb_clk" ;
+			clocks = <&psclks ENSEMBLE_SPI1_SS_IN_VAL_MST_CLK>;
+			clock-names = "ssi_clk" ;
 			reg-io-width = <4>;
 			spi-tx-bus-width = <1>;
 			spi-rx-bus-width = <1>;
@@ -309,12 +309,12 @@
 		};
 
 		spi2: spi@48105000 {
-			compatible = "snps,dwc-ssi-1.03a";
+			compatible = "snps,dwc-ssi-1.01a";
 			reg = <0x48105000 0x1000>;
 			num-cs = <1>;
 			interrupts = <GIC_SPI 128 IRQ_TYPE_LEVEL_HIGH>;
-			clocks = <&psclks ENSEMBLE_SYST_HCLK>;
-			clock-names = "ahb_clk" ;
+			clocks = <&psclks ENSEMBLE_SPI2_SS_IN_VAL_MST_CLK>;
+			clock-names = "ssi_clk" ;
 			reg-io-width = <4>;
 			spi-tx-bus-width = <1>;
 			spi-rx-bus-width = <1>;
@@ -322,11 +322,11 @@
 		};
 
 		spi3: spi@48106000 {
-			compatible = "snps,dwc-ssi-1.03a";
+			compatible = "snps,dwc-ssi-1.01a";
 			reg = <0x48106000 0x1000>;
 			interrupts = <GIC_SPI 129 IRQ_TYPE_LEVEL_HIGH>;
-			clocks = <&psclks ENSEMBLE_SYST_HCLK>;
-			clock-names = "ahb_clk" ;
+			clocks = <&psclks ENSEMBLE_SPI3_SS_IN_VAL_MST_CLK>;
+			clock-names = "ssi_clk" ;
 			num-cs = <1>;
 			reg-io-width = <4>;
 			spi-tx-bus-width = <1>;

@@ -150,6 +150,30 @@
 	status = "disabled";
 };
 
+&spi0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_spi0>;
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+};
+
+&spi1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_spi1>;
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+};
+
+&spi3 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_spi3>;
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+};
+
 &pinmux {
 	/* syntax:
 	pinmux = < PIN_NAME	<8bit pad-config value> >
@@ -242,15 +266,6 @@
 		pinmux = <
 			PIN_P7_6__I3C_SDA_D	0x0
 			PIN_P7_7__I3C_SCL_D	0x0
-		>;
-	};
-
-	pinctrl_spi3: spi3grp {
-		pinmux = <
-			PIN_P12_7__GPIO		0x0
-			PIN_P12_6__SPI3_SCLK_A	0x0
-			PIN_P12_4__SPI3_MISO_A	0x23
-			PIN_P12_5__SPI3_MOSI_A	0x0
 		>;
 	};
 
@@ -351,6 +366,30 @@
 			PIN_P0_5__ANA_S5        0x23
 			PIN_P0_6__ANA_S6        0x23
 			PIN_P0_7__ANA_S7        0x23
+		>;
+	};
+	pinctrl_spi0: spi0grp {
+		pinmux = <
+			PIN_P5_2__SPI0_SS0_B	0x23
+			PIN_P5_3__SPI0_SCLK_B	0x23
+			PIN_P5_0__SPI0_MISO_B	0x23
+			PIN_P5_1__SPI0_MOSI_B	0x23
+		>;
+	};
+	pinctrl_spi1: spi1grp {
+		pinmux = <
+			PIN_P6_4__SPI1_SS0_B	0x0
+			PIN_P8_5__SPI1_SCLK_B	0x0
+			PIN_P8_3__SPI1_MISO_B	0x23
+			PIN_P8_4__SPI1_MOSI_B	0x0
+		>;
+	};
+	pinctrl_spi3: spi3grp {
+		pinmux = <
+			PIN_P12_7__SPI3_SS0_A	0x0
+			PIN_P12_6__SPI3_SCLK_A	0x0
+			PIN_P12_4__SPI3_MISO_A	0x23
+			PIN_P12_5__SPI3_MOSI_A	0x0
 		>;
 	};
 
