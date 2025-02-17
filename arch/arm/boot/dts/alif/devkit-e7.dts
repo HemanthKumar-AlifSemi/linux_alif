@@ -5,6 +5,7 @@
 /dts-v1/;
 
 #include "ensemble-e7.dtsi"
+#include "devkit_ex_dct_defines.h"
 / {
 	model = "devkit-e7";
 	compatible = "alif,ensemble";
@@ -155,15 +156,14 @@
 	pinctrl-0 = <&pinctrl_spi0>;
 	#address-cells = <1>;
 	#size-cells = <0>;
-	status = "okay";
+	status = SPI0_STATUS;
 };
 
 &spi1 {
 	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_spi1>;
 	#address-cells = <1>;
 	#size-cells = <0>;
-	status = "okay";
+	status = SPI1_STATUS;
 };
 
 &spi3 {
@@ -171,7 +171,7 @@
 	pinctrl-0 = <&pinctrl_spi3>;
 	#address-cells = <1>;
 	#size-cells = <0>;
-	status = "okay";
+	status = SPI3_STATUS;
 };
 
 &pinmux {

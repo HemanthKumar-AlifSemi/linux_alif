@@ -1,4 +1,13 @@
-// HWSEM defines
+/* SPDX-License-Identifier: GPL-2.0-only */
+/*
+ * Copyright 2024 Alif Semiconductor.
+ * Author: Jagadeesh Krishnanjanappa <jagadeesh@alifsemi.com>
+ */
+
+#ifndef __DEVKIT_DCT_H__
+#define __DEVKIT_DCT_H__
+
+/* HWSEM defines */
 #define HWSEM0_STATUS "disabled"
 #define HWSEM1_STATUS "disabled"
 #define HWSEM2_STATUS "disabled"
@@ -16,7 +25,7 @@
 #define HWSEM14_STATUS "disabled"
 #define HWSEM15_STATUS "disabled"
 
-// MHU defines
+/* MHU defines */
 #define RTSS_HP_MHU0_STATUS "okay"
 #define RTSS_HP_MHU1_STATUS "okay"
 #define RTSS_HE_MHU0_STATUS "okay"
@@ -24,19 +33,19 @@
 #define SE_MHU0_STATUS "okay"
 #define SE_MHU1_STATUS "okay"
 
-// Ethernet defines
+/* Ethernet defines */
 #define ETH_STATUS "disabled"
 
-//SDMMC defines
+/* SDMMC defines */
 #define SDHCI_STATUS "disabled"
 
-//SPI defines
+/* SPI defines */
 #define SPI0_STATUS "disabled"
 #define SPI1_STATUS "disabled"
 #define SPI2_STATUS "disabled"
 #define SPI3_STATUS "okay"
 
-//UART defines
+/* UART defines */
 #define UART0_STATUS "disabled"
 #define UART1_STATUS "disabled"
 #define UART2_STATUS "okay"
@@ -46,10 +55,10 @@
 #define UART6_STATUS "disabled"
 #define UART7_STATUS "disabled"
 
-//USB defines
+/* USB defines */
 #define HSUSB_STATUS "disabled"
 
-//UTIMER defines
+/* UTIMER defines */
 #define UTIMER0_STATUS "disabled"
 #define UTIMER1_STATUS "disabled"
 #define UTIMER2_STATUS "disabled"
@@ -63,55 +72,57 @@
 #define UTIMER10_STATUS "disabled"
 #define UTIMER11_STATUS "disabled"
 
-//DSI defines
+/* DSI defines */
 #define DSI_STATUS "disabled"
 
-//DPI defines
+/* DPI defines */
 #define DPI_STATUS "disabled"
 
-//CSI defines
+/* CSI defines */
 #define CSI_STATUS "disabled"
 
-//CPI defines
+/* CPI defines */
 #define CPI_STATUS "disabled"
 
-//ADC defines
+/* ADC defines */
 #define ADC120_STATUS "disabled"
 #define ADC121_STATUS "disabled"
 #define ADC122_STATUS "disabled"
 #define ADC24_STATUS  "disabled"
 
-//CMP defines
+/* CMP defines */
 #define CMP0_STATUS "disabled"
 #define CMP1_STATUS "disabled"
 #define CMP2_STATUS "disabled"
 #define CMP3_STATUS "disabled"
 
-//DAC defines
+/* DAC defines */
 #define DAC120_STATUS "disabled"
 #define DAC121_STATUS "disabled"
 #define DAC122_STATUS "disabled"
 
-//I2C Defines
+/* I2C Defines */
 #define I2C0_STATUS "disabled"
 #define I2C1_STATUS "disabled"
 #define I2C2_STATUS "disabled"
 #define I2C3_STATUS "disabled"
 
-//I3C Defines
+/* I3C Defines */
 #define I3C0_STATUS "disabled"
 
-//I2S Defines
+/* I2S Defines */
 #define I2S0_STATUS "disabled"
 #define I2S1_STATUS "disabled"
 #define I2S2_STATUS "disabled"
 #define I2S3_STATUS "disabled"
 
-//CDC200 Defines
+/* CDC200 Defines */
 #define CDC200_STATUS "okay"
 
-//D2D Defines
+/* D2D Defines */
 #define DAVE_2D_STATUS "okay"
 
-//PCM Defines
+/* PCM Defines */
 #define PCM_STATUS "disabled"
+
+#endif /* __DEVKIT_DCT_H__ */
