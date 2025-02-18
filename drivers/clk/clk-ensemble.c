@@ -34,6 +34,7 @@ static const char *const i2s_clk_src_sels[] = { "76m8_clk", "audio_clk", };
 static const char *const pixclk_sels[] = {"syst_aclk", "pll_clk3", };
 static const char *const eth_clk_sels[] = {"eth_refclk", "50m_clk"};
 static const char *const adc_clk_sels[] = {"syst_pclk", "160m_clk"};
+static const char *const sd_clk_sels[] = {"syst_hclk", "100m_clk"};
 struct clk_hw *__ensemble_clk_hw_composite(const char *name,
 					const char * const *parent_names,
 					int num_parents, void __iomem *reg,
@@ -361,6 +362,10 @@ static void __init ensemble_clocks_init(struct device_node *ccps_node)
 				"spi3_ssi_slv_in_val_clk", "spi3_ssi_slv_in_sel_clk", base + 0x28,
 				11, 0, CLK_GATE_SET_TO_DISABLE);
 
+	hws[ENSEMBLE_SD_CLK] = ensemble_clk_hw_mux("sdhci_clk",
+				ccpmst_base + 0xC, 16, 1, sd_clk_sels,
+				ARRAY_SIZE(sd_clk_sels));
+	clk_set_parent(hws[ENSEMBLE_SD_CLK]->clk, hws[ENSEMBLE_100M_CLK]->clk);
 	for (int i = 0; i < ENSEMBLE_CLK_END; i++) {
 		if (IS_ERR(hws[i]))
 			pr_err("ensemble clk %u: register failed with %ld\n",
