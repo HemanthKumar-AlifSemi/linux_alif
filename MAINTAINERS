@@ -2033,6 +2033,7 @@ F:	drivers/clk/sunxi/
 ARM/ALIF SEMICONDUCTOR MACHINE SUPPORT
 M:	Hemanth Kumar <hemanth@alifsemi.com>
 F:	Documentation/devicetree/bindings/rtc/snps,designware-rtc.yaml
+F:	drivers/rtc/rtc-dw-apb.c
 
 ARM/Allwinner sunXi SoC support
 M:	Chen-Yu Tsai <wens@csie.org>
