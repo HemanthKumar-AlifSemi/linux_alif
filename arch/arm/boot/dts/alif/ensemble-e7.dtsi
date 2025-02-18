@@ -229,7 +229,7 @@
 	};
 
 	rtc: rtc@42000000 {
-		compatible = "alif,devkit-rtc";
+		compatible = "snps,designware-rtc";
 		reg = <0x42000000 0x100>;
 		interrupts = <GIC_SPI 339  IRQ_TYPE_LEVEL_HIGH>;
 		clocks = <&psclks ENSEMBLE_S32K_CLK>,
