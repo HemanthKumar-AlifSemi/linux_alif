@@ -2030,6 +2030,10 @@ M:	Emilio López <emilio@elopez.com.ar>
 S:	Maintained
 F:	drivers/clk/sunxi/
 
+ARM/ALIF SEMICONDUCTOR MACHINE SUPPORT
+M:	Hemanth Kumar <hemanth@alifsemi.com>
+F:	Documentation/devicetree/bindings/rtc/snps,designware-rtc.yaml
+
 ARM/Allwinner sunXi SoC support
 M:	Chen-Yu Tsai <wens@csie.org>
 M:	Jernej Skrabec <jernej.skrabec@gmail.com>

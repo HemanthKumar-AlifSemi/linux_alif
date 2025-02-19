@@ -1,0 +1,65 @@
+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+
+%YAML 1.2
+
+---
+
+$id: "http://devicetree.org/schemas/rtc/snps,designware-rtc.yaml#"
+
+$schema: "http://devicetree.org/meta-schemas/core.yaml#"
+
+title: Alif Ensemble Real Time Counter (RTC)
+
+maintainers:
+  - Hemanth Kumar <hemanth@alifsemi.com>
+
+description: |
+  Real Time Counter IP for the Alif Ensemble platform.
+
+properties:
+  compatible:
+    const: "snps,designware-rtc"
+
+  reg:
+    maxItems: 1
+    description: >
+      Physical base address and length of the memory-mapped region for the RTC.
+
+  interrupts:
+    maxItems: 1
+    description: >
+      Interrupt line for the RTC.
+
+  clocks:
+    items:
+      - description: Low-power Real Time Counter clock (lprtc_clk)
+      - description: Peripheral clock (pclk)
+
+    description: |
+      Phandles to the clocks used by the RTC.
+
+  clock-names:
+    items:
+      - const: "lprtc_clk"
+      - const: "pclk"
+
+required:
+  - compatible
+  - reg
+  - interrupts
+  - clocks
+  - clock-names
+
+additionalProperties: false
+
+examples:
+
+  - |
+    rtc: rtc@42000000 {
+      compatible = "snps,designware-rtc";
+      reg = <0x42000000 0x100>;
+      interrupts = <GIC_SPI 339 IRQ_TYPE_LEVEL_HIGH>;
+      clocks = <&psclks ENSEMBLE_S32K_CLK>,
+               <&psclks ENSEMBLE_SYST_PCLK>;
+      clock-names = "lprtc_clk", "pclk";
+    };
