@@ -73,6 +73,13 @@
 	};
 };
 
+&hsusb {
+	status = HSUSB_STATUS;
+	usbdual_hs: usb-dual@48200000 {
+		status = HSUSB_STATUS;
+	};
+};
+
 &pdm0 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_pdm0>;

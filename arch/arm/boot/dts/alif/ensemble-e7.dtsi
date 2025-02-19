@@ -347,6 +347,9 @@
 			#address-cells = <1>;
 			#size-cells = <1>;
 			ranges;
+			clock-names = "usb_clk", "dwc_clk";
+			clocks = <&psclks ENSEMBLE_USB_CLK>,
+				<&psclks ENSEMBLE_DWC_USB_CLK>;
 			status = "disabled";
 			usbdual_hs: usb-dual@48200000 {
 				compatible = "snps","snps,dwc3";
