@@ -270,6 +270,8 @@ static void __init ensemble_clocks_init(struct device_node *ccps_node)
 				"syst_pclk", base + 0x38, 4);
 	hws[ENSEMBLE_CMP0_CLK] = ensemble_clk_hw_gate("cmp0_clk",
 				"syst_pclk", base + 0x38, 0);
+	hws[ENSEMBLE_DWC_USB_CLK] = ensemble_clk_hw_gate("dwc_clk",
+				"syst_pclk", ccpmst_base + 0xC, 20);
 
 	hws[ENSEMBLE_CAMERA_PIXCLK] = ensemble_clk_hw_composite("camera_pixclk",
 				pixclk_sels, ccpmst_base + 0x0);
