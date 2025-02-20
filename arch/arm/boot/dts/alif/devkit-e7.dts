@@ -171,7 +171,14 @@
 	pinctrl-0 = <&pinctrl_spi3>;
 	#address-cells = <1>;
 	#size-cells = <0>;
+	cs-gpios = <&port13 7 0>;
 	status = SPI3_STATUS;
+	bme680@0 {
+		compatible = "bosch,bme680";
+		spi-max-frequency= <1000000>;
+		reg = <0>;
+	};
+
 };
 
 &pinmux {
@@ -386,7 +393,7 @@
 	};
 	pinctrl_spi3: spi3grp {
 		pinmux = <
-			PIN_P12_7__SPI3_SS0_A	0x0
+			PIN_P12_7__GPIO		0x0
 			PIN_P12_6__SPI3_SCLK_A	0x0
 			PIN_P12_4__SPI3_MISO_A	0x23
 			PIN_P12_5__SPI3_MOSI_A	0x0
