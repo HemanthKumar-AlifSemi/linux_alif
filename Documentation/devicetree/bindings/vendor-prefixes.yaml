@@ -73,6 +73,8 @@ patternProperties:
     description: AESOP Embedded Forum
   "^airoha,.*":
     description: Airoha
+  "^alif,.*":
+    description: Alif Semiconductor
   "^al,.*":
     description: Annapurna Labs
   "^alcatel,.*":

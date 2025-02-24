@@ -1,0 +1,67 @@
+# SPDX-License-Identifier: GPL-2.0-only OR BSD-2-Clause
+%YAML 1.2
+---
+$id: "http://devicetree.org/schemas/iio/dac/alif,ensemble-dac.yaml#"
+$schema: "http://devicetree.org/meta-schemas/core.yaml#"
+
+title: ALIF Ensemble DAC
+
+description: |
+  Schema for the DAC (Digital-to-Analog Converter) nodes found on the ALIF ENSEMBLE SoC.
+
+maintainers:
+  - Hemanth Kumar <hemanth@alifsemi.com>
+
+properties:
+  compatible:
+    const: alif,ensemble-dac
+
+  reg:
+    description: Address and length of the device's register set.
+    items:
+      - description: Base address of the DAC register set.
+      - description: Size of the DAC register set.
+
+  clocks:
+    $ref: /schemas/types.yaml#/definitions/phandle-array
+    description: Handle to the input clock for the DAC.
+
+
+  clock-names:
+    description: List of input clocks.
+    items:
+      - const: apb_pclk
+
+  status:
+    description: Device status.
+    enum:
+      - "okay"
+      - "disabled"
+
+required:
+  - compatible
+  - reg
+  - clocks
+  - clock-names
+
+additionalProperties: false
+
+examples:
+  - |
+    #include <dt-bindings/clock/alif,ensemble-clock.h>
+
+    dac0: dac12_0@49028000 {
+        compatible = "alif,ensemble-dac";
+        reg = <0x49028000 0x10>;
+        clocks = <&syst_pclk 0>;
+        clock-names = "apb_pclk";
+        status = "disabled";
+    };
+
+    dac1: dac12_1@49029000 {
+        compatible = "alif,ensemble-dac";
+        reg = <0x49029000 0x10>;
+        clocks = <&syst_pclk 0>;
+        clock-names = "apb_pclk";
+        status = "disabled";
+    };
