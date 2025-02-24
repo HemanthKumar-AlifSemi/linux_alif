@@ -130,25 +130,25 @@
 &adc0 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_adc120>;
-	status = "okay";
+	status = ADC120_STATUS;
 };
 
 &adc1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_adc121>;
-	status = "okay";
+	status = ADC121_STATUS;
 };
 
 &adc2 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_adc122>;
-	status = "okay";
+	status = ADC122_STATUS;
 };
 
 &adc24 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_adc24>;
-	status = "disabled";
+	status = ADC24_STATUS;
 };
 
 &spi0 {
