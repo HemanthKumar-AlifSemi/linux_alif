@@ -388,6 +388,16 @@ config LTC2664
 	  To compile this driver as a module, choose M here: the
 	  module will be called ltc2664.
 
+config ENSEMBLE_DAC
+	tristate "Alif Ensemble DAC driver"
+	depends on ARCH_ENSEMBLE || COMPILE_TEST
+	depends on OF && HAS_IOMEM
+	help
+	 Say yes to build support for the Alif Ensemble DAC.
+	 To compile this driver as a module, choose M.
+	 This module converts 12-bit digital values into analog voltage
+	 signals with an output range between 0 V and 1.8 V in LP mode.
+
 config M62332
 	tristate "Mitsubishi M62332 DAC driver"
 	depends on I2C

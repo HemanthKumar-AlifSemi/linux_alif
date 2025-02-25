@@ -2113,6 +2113,7 @@ N:	meson
 
 ARM/ALIF SEMICONDUCTOR MACHINE SUPPORT
 M:	Hemanth Kumar <hemanth@alifsemi.com>
+F:	drivers/iio/dac/ensemble-dac.c
 F:	Documentation/devicetree/bindings/iio/dac/alif,ensemble-dac.yaml
 
 ARM/Annapurna Labs ALPINE ARCHITECTURE
