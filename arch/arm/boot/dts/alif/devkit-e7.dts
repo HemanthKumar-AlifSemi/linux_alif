@@ -182,6 +182,14 @@
 
 };
 
+&dac0 {
+	status = DAC120_STATUS;
+};
+
+&dac1 {
+	status = DAC121_STATUS;
+};
+
 &pinmux {
 	/* syntax:
 	pinmux = < PIN_NAME	<8bit pad-config value> >
