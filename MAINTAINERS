@@ -2030,6 +2030,7 @@ M:	Hemanth Kumar <hemanth@alifsemi.com>
 F:	Documentation/devicetree/bindings/hwlock/alif,hwsem.yaml
 F:	Documentation/devicetree/bindings/usb/alif,ensemble-usb3.yaml
 F:	drivers/hwspinlock/alif_hwsem.c
+F:	drivers/usb/dwc3/dwc3-ensemble.c
 
 ARM/Allwinner SoC Clock Support
 M:	Emilio López <emilio@elopez.com.ar>

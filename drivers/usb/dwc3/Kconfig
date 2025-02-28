@@ -189,4 +189,13 @@ config USB_DWC3_RTK
 	  or dual-role mode.
 	  Say 'Y' or 'M' if you have such device.
 
+config USB_DWC3_ENSEMBLE
+	tristate "ALIF ENSEMBLE Platform"
+	depends on (ARM) && OF
+	default USB_DWC3
+	help
+	  Support Alif Ensemble platforms with DesignWare Core USB3 IP.
+	  Supports both host and device modes.
+	  This driver supports USB3 functionality on Ensemble SoCs.
+	  Say 'Y' or 'M' here if you have one such device.
 endif
