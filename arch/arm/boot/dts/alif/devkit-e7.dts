@@ -261,6 +261,12 @@
 	status = HWSEM15_STATUS;
 };
 
+&sdmmc {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_sdhci>;
+	status = SDHCI_STATUS;
+};
+
 &pinmux {
 	/* syntax:
 	pinmux = < PIN_NAME	<8bit pad-config value> >
@@ -477,6 +483,16 @@
 			PIN_P12_6__SPI3_SCLK_A	0x0
 			PIN_P12_4__SPI3_MISO_A	0x23
 			PIN_P12_5__SPI3_MOSI_A	0x0
+		>;
+	};
+	pinctrl_sdhci: sdhci0grp {
+		pinmux = <
+			PIN_P5_0__SD_D0_A       0x23
+			PIN_P5_1__SD_D1_A       0x23
+			PIN_P5_2__SD_D2_A       0x23
+			PIN_P5_3__SD_D3_A       0x23
+			PIN_P7_0__SD_CMD_A      0x23
+			PIN_P7_1__SD_CLK_A      0x23
 		>;
 	};
 
