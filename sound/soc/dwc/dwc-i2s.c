@@ -980,6 +980,7 @@ static int dw_i2s_probe(struct platform_device *pdev)
 		}
 		ret = dw_configure_dai_by_pd(dev, dw_i2s_dai, res, pdata);
 	} else {
+		dev->pclk = devm_clk_get_optional_enabled(&pdev->dev, "pclk");
 		clk_id = "i2sclk";
 		ret = dw_configure_dai_by_dt(dev, dw_i2s_dai, res);
 	}
