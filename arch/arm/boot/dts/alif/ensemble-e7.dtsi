@@ -942,7 +942,9 @@
 		i2s0: i2s0@49014000 {
 			compatible = "snps,designware-i2s";
 			reg = <0x49014000 0x1000>;
-			clocks = <&psclks ENSEMBLE_I2S0_CLK>;
+			clocks = <&psclks ENSEMBLE_I2S0_CLK>,
+				<&psclks ENSEMBLE_I2S0_BIT_CLK>;
+			clock-names = "pclk","i2sclk";
 			#sound-dai-cells = <0>;
 			interrupts = <GIC_SPI 130 IRQ_TYPE_LEVEL_HIGH>;
 			status = "disabled";
@@ -951,7 +953,9 @@
 		i2s1: i2s1@49015000 {
 			compatible = "snps,designware-i2s";
 			reg = <0x49015000 0x1000>;
-			clocks = <&psclks ENSEMBLE_I2S1_CLK>;
+			clocks = <&psclks ENSEMBLE_I2S1_CLK>,
+				<&psclks ENSEMBLE_I2S1_BIT_CLK>;
+			clock-names = "pclk","i2sclk";
 			#sound-dai-cells = <0>;
 			interrupts = <GIC_SPI 131 IRQ_TYPE_LEVEL_HIGH>;
 			status = "disabled";
@@ -960,7 +964,9 @@
 		i2s2: i2s2@49016000 {
 			compatible = "snps,designware-i2s";
 			reg = <0x49016000 0x1000>;
-			clocks = <&psclks ENSEMBLE_I2S2_CLK>;
+			clocks = <&psclks ENSEMBLE_I2S2_CLK>,
+				<&psclks ENSEMBLE_I2S2_BIT_CLK>;
+			clock-names = "pclk","i2sclk";
 			#sound-dai-cells = <0>;
 			interrupts = <GIC_SPI 132 IRQ_TYPE_LEVEL_HIGH>;
 			status = "disabled";
@@ -969,7 +975,9 @@
 		i2s3: i2s3@49017000 {
 			compatible = "snps,designware-i2s";
 			reg = <0x49017000 0x1000>;
-			clocks = <&psclks ENSEMBLE_I2S3_CLK>;
+			clocks = <&psclks ENSEMBLE_I2S3_CLK>,
+				<&psclks ENSEMBLE_I2S3_BIT_CLK>;
+			clock-names = "pclk","i2sclk";
 			#sound-dai-cells = <0>;
 			interrupts = <GIC_SPI 133 IRQ_TYPE_LEVEL_HIGH>;
 			status = "disabled";

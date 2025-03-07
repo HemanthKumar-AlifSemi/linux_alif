@@ -51,9 +51,9 @@
 		rootfstype=cramfs ro loglevel=9";
 	};
 
-	sph0645: acodec {
+	t5848: acodec {
 		#sound-dai-cells = <0>;
-		compatible = "knowles,sph0645";
+		compatible = "invensense,t5848";
 	};
 
 	sound-memsmic {
@@ -64,11 +64,11 @@
 		simple-audio-card,bitclock-master = <&cpudai_1>;
 
 		cpudai_1: simple-audio-card,cpu {
-			sound-dai = <&i2s2>;
+			sound-dai = <&i2s3>;
 		};
 
 		mcodec: simple-audio-card,codec {
-			sound-dai = <&sph0645>;
+			sound-dai = <&t5848>;
 		};
 	};
 };
@@ -127,6 +127,7 @@
 &i2s3 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2s3>;
+	status = I2S3_STATUS;
 };
 
 &eth0 {
@@ -349,9 +350,9 @@
 
 	pinctrl_i2s3: i2s3grp {
 		pinmux = <
-			PIN_P8_6__I2S3_SCLK_B	0x0
-			PIN_P8_7__I2S3_WS_B	0x0
-			PIN_P9_0__I2S3_SDI_B	0x0
+			PIN_P8_6__I2S3_SCLK_B	0x23
+			PIN_P8_7__I2S3_WS_B	0x23
+			PIN_P9_0__I2S3_SDI_B	0x23
 		>;
 	};
 
