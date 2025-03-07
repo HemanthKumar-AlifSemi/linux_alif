@@ -25,6 +25,8 @@
 #define RTC_CLK_DIVIDER				14648
 #define PCLK_FORCE				(1 << 30)
 #define IPCLK_FORCE				(1 << 31)
+#define HFXO_76M8_CLK				76800000
+#define EXT_AUDIO_CLK				76800000
 
 static struct clk_hw **hws;
 static struct clk_hw_onecell_data *clk_hw_data;
@@ -67,6 +69,14 @@ static inline struct clk_hw *ensemble_clk_hw_fixed_factor(const char *name,
 {
 	return clk_hw_register_fixed_factor(NULL, name, parent,
 			CLK_SET_RATE_PARENT, mult, div);
+}
+
+static inline struct clk_hw *ensemble_clk_hw_divider(const char *name,
+						const char *parent, void __iomem *reg,
+						u8 shift, u8 width)
+{
+	return clk_hw_register_divider(NULL, name, parent, NULL, reg, shift,
+			width, CLK_DIVIDER_ONE_BASED, &ensemble_ccps_lock);
 }
 
 #define CC_DIV_SHIFT		16
@@ -189,6 +199,10 @@ static void __init ensemble_clocks_init(struct device_node *ccps_node)
 	/* Register the fixed 50MHz REFCLK from the ETH PHY */
 	hws[ENSEMBLE_ETH_REFCLK] = clk_hw_register_fixed_rate(NULL, "eth_refclk", NULL, 0,
 									50000000);
+	hws[ENSEMBLE_76M8_CLK] = clk_hw_register_fixed_rate(NULL, "76m8_clk", NULL, 0,
+									HFXO_76M8_CLK);
+	hws[ENSEMBLE_AUDIO_CLK] = clk_hw_register_fixed_rate(NULL, "audio_clk", NULL, 0,
+									EXT_AUDIO_CLK);
 
 	hws[ENSEMBLE_SYST_ACLK] =  ensemble_clk_hw_fixed_factor("syst_aclk", "pll_clk1", 1, 2);
 	hws[ENSEMBLE_SYST_HCLK] = ensemble_clk_hw_fixed_factor("syst_hclk", "syst_aclk", 1, 2);
@@ -366,6 +380,52 @@ static void __init ensemble_clocks_init(struct device_node *ccps_node)
 				ccpmst_base + 0xC, 16, 1, sd_clk_sels,
 				ARRAY_SIZE(sd_clk_sels));
 	clk_set_parent(hws[ENSEMBLE_SD_CLK]->clk, hws[ENSEMBLE_100M_CLK]->clk);
+
+	hws[ENSEMBLE_I2S0_SCLK] = ensemble_clk_hw_mux("i2s0_sclk",
+				base + 0x10, 16, 1, i2s_clk_src_sels,
+				ARRAY_SIZE(i2s_clk_src_sels));
+	hws[ENSEMBLE_I2S1_SCLK] = ensemble_clk_hw_mux("i2s1_sclk",
+				base + 0x14, 16, 1, i2s_clk_src_sels,
+				ARRAY_SIZE(i2s_clk_src_sels));
+	hws[ENSEMBLE_I2S2_SCLK] = ensemble_clk_hw_mux("i2s2_sclk",
+				base + 0x18, 16, 1, i2s_clk_src_sels,
+				ARRAY_SIZE(i2s_clk_src_sels));
+	hws[ENSEMBLE_I2S3_SCLK] = ensemble_clk_hw_mux("i2s3_sclk",
+				base + 0x1c, 16, 1, i2s_clk_src_sels,
+				ARRAY_SIZE(i2s_clk_src_sels));
+
+	clk_set_parent(hws[ENSEMBLE_I2S0_SCLK]->clk, hws[ENSEMBLE_76M8_CLK]->clk);
+	clk_set_parent(hws[ENSEMBLE_I2S1_SCLK]->clk, hws[ENSEMBLE_76M8_CLK]->clk);
+	clk_set_parent(hws[ENSEMBLE_I2S2_SCLK]->clk, hws[ENSEMBLE_76M8_CLK]->clk);
+	clk_set_parent(hws[ENSEMBLE_I2S3_SCLK]->clk, hws[ENSEMBLE_76M8_CLK]->clk);
+
+	hws[ENSEMBLE_I2S0_SCLK_AON] = ensemble_clk_hw_gate("i2s0_aon_clk",
+				"i2s0_sclk", base + 0x10, 20);
+	hws[ENSEMBLE_I2S1_SCLK_AON] = ensemble_clk_hw_gate("i2s1_aon_clk",
+				"i2s1_sclk", base + 0x14, 20);
+	hws[ENSEMBLE_I2S2_SCLK_AON] = ensemble_clk_hw_gate("i2s2_aon_clk",
+				"i2s2_sclk", base + 0x18, 20);
+	hws[ENSEMBLE_I2S3_SCLK_AON] = ensemble_clk_hw_gate("i2s3_aon_clk",
+				"i2s3_sclk", base + 0x1c, 20);
+
+	hws[ENSEMBLE_I2S0_CLK] = ensemble_clk_hw_gate("i2s0_clk",
+				"i2s0_aon_clk", base + 0x10, 12);
+	hws[ENSEMBLE_I2S1_CLK] = ensemble_clk_hw_gate("i2s1_clk",
+				"i2s1_aon_clk", base + 0x14, 12);
+	hws[ENSEMBLE_I2S2_CLK] = ensemble_clk_hw_gate("i2s2_clk",
+				"i2s2_aon_clk", base + 0x18, 12);
+	hws[ENSEMBLE_I2S3_CLK] = ensemble_clk_hw_gate("i2s3_clk",
+				"i2s3_aon_clk", base + 0x1c, 12);
+
+	hws[ENSEMBLE_I2S0_BIT_CLK] = ensemble_clk_hw_divider("i2s0_bit_clk",
+					"76m8_clk", base + 0x10, 0, 10);
+	hws[ENSEMBLE_I2S1_BIT_CLK] = ensemble_clk_hw_divider("i2s1_bit_clk",
+					"76m8_clk", base + 0x14, 0, 10);
+	hws[ENSEMBLE_I2S2_BIT_CLK] = ensemble_clk_hw_divider("i2s2_bit_clk",
+					"76m8_clk", base + 0x18, 0, 10);
+	hws[ENSEMBLE_I2S3_BIT_CLK] = ensemble_clk_hw_divider("i2s3_bit_clk",
+					"76m8_clk", base + 0x1c, 0, 10);
+
 	for (int i = 0; i < ENSEMBLE_CLK_END; i++) {
 		if (IS_ERR(hws[i]))
 			pr_err("ensemble clk %u: register failed with %ld\n",
