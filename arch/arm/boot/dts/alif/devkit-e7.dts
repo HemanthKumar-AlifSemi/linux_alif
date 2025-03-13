@@ -93,17 +93,17 @@
 &uart2 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart2>;
-	status = "okay";
+	status = UART2_STATUS;
 };
 
 &uart3 {
-	status = "okay";
+	status = UART3_STATUS;
 };
 
 &uart4 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart4>;
-	status = "okay";
+	status = UART4_STATUS;
 };
 
 &i2c0 {
@@ -133,7 +133,7 @@
 &eth0 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_eth0>;
-	status = "okay";
+	status = ETH_STATUS;
 };
 
 &adc0 {
