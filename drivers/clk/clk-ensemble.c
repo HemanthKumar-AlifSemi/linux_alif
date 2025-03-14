@@ -75,7 +75,7 @@ static inline struct clk_hw *ensemble_clk_hw_divider(const char *name,
 						const char *parent, void __iomem *reg,
 						u8 shift, u8 width)
 {
-	return clk_hw_register_divider(NULL, name, parent, NULL, reg, shift,
+	return clk_hw_register_divider(NULL, name, parent, 0, reg, shift,
 			width, CLK_DIVIDER_ONE_BASED, &ensemble_ccps_lock);
 }
 
