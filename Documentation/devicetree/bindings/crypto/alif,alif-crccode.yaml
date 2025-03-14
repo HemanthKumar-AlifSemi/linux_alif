@@ -1,0 +1,48 @@
+# SPDX-License-Identifier: (GPL-2.0 OR BSD-2-Clause)
+%YAML 1.2
+---
+$id: http://devicetree.org/schemas/crypto/alif,alif-crccode.yaml#
+$schema: http://devicetree.org/meta-schemas/core.yaml#
+
+title: Alif Ensemble CRC Controller
+
+maintainers:
+  - Hemanth Kumar <hemanth@alifsemi.com>
+
+description: |
+  The Alif Ensemble CRC controller is a hardware-based cyclic redundancy
+  check (CRC) computation unit.
+
+properties:
+  compatible:
+    const: alif,alif-crccode
+    description: Should be "alif,alif-crccode".
+
+  reg:
+    maxItems: 1
+    description: The address and length of the CRC peripheral registers.
+
+  clocks:
+    maxItems: 1
+    description: Phandle to the input clock of the CRC instance.
+
+  clock-names:
+    const: ahb_clk
+    description: Name of the CRC clock.
+
+required:
+  - compatible
+  - reg
+  - clocks
+  - clock-names
+
+additionalProperties: false
+
+examples:
+  - |
+    crc@48107000 {
+      compatible = "alif,alif-crccode";
+      reg = <0x48107000 0x1000>;
+      clocks = <&syst_hclk>;
+      clock-names = "ahb_clk";
+    };
