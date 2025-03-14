@@ -828,6 +828,17 @@ config CRYPTO_DEV_CCREE
 	  cryptographic operations on the system REE.
 	  If unsure say Y.
 
+config CRYPTO_DEV_ALIF_CRC
+	tristate "Support for Alif CRC hardware"
+	depends on CRYPTO && CRYPTO_HW && OF
+	default n
+	select CRYPTO_HASH
+	help
+	Enable support for the Alif Ensemble CRC hardware module.
+	This driver supports 8, 16, and 32-bit CRC codes with various
+	polynomials, and offers configurable byte and bit swapping
+	of input data.
+
 source "drivers/crypto/hisilicon/Kconfig"
 
 source "drivers/crypto/amlogic/Kconfig"

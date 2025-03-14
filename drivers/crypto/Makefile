@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0
 obj-$(CONFIG_CRYPTO_DEV_ALLWINNER) += allwinner/
+obj-$(CONFIG_CRYPTO_DEV_ALIF_CRC) += alif-crc.o
 obj-$(CONFIG_CRYPTO_DEV_ASPEED) += aspeed/
 obj-$(CONFIG_CRYPTO_DEV_ATMEL_AES) += atmel-aes.o
 obj-$(CONFIG_CRYPTO_DEV_ATMEL_SHA) += atmel-sha.o
