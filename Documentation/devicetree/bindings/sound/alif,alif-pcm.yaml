@@ -1,0 +1,69 @@
+# SPDX-License-Identifier: (GPL-2.0 OR BSD-2-Clause)
+$id: "http://devicetree.org/schemas/sound/alif,alif-pcm.yaml#"
+$schema: "http://devicetree.org/meta-schemas/core.yaml#"
+
+title: Alif Ensemble PCM Audio CODEC
+
+description: |
+  Binding for the Alif Ensemble PCM audio CODEC.
+
+maintainers:
+  - Hemanth Kumar <hemanth@alifsemi.com>
+
+properties:
+  compatible:
+    const: alif,alif-pcm
+
+  pinctrl-names:
+    items:
+      - const: default
+    description: Should contain only one value - "default".
+
+  pinctrl-0:
+    description: Should specify pin control groups used for this controller.
+
+  reg:
+    maxItems: 1
+    description: Base address and size of the IP core instance.
+
+  interrupts:
+    minItems: 1
+    description: List of interrupt numbers.
+
+  clock-names:
+    items:
+      - const: pclk
+    description: List of input clocks. Must contain "pclk".
+
+  clocks:
+    maxItems: 1
+    description: Input clock specifier. Refer to common clock bindings.
+
+  status:
+    description: Status property to enable/disable the device.
+
+required:
+  - compatible
+  - pinctrl-names
+  - pinctrl-0
+  - reg
+  - interrupt-parent
+  - interrupts
+  - clock-names
+  - clocks
+
+additionalProperties: false
+
+examples:
+  - |
+    pcm: pcm@4902D000 {
+      compatible = "alif,alif-pcm";
+      pinctrl-names = "default";
+      pinctrl-0 = <&pinctrl_pcm0>;
+      reg = <0x4902D000 0x1000>;
+      clocks = <&syst_pclk 0>;
+      clock-names = "pclk";
+      interrupt-parent = <&gic>;
+      interrupts = <0 134 IRQ_TYPE_LEVEL_HIGH>;
+      status = PCM_STATUS;
+    };

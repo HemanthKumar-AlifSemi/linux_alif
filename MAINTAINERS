@@ -2031,6 +2031,8 @@ F:	Documentation/devicetree/bindings/crypto/alif,alif-crccode.yaml
 F:	Documentation/devicetree/bindings/hwlock/alif,hwsem.yaml
 F:	Documentation/devicetree/bindings/iio/dac/alif,ensemble-dac.yaml
 F:	Documentation/devicetree/bindings/rtc/snps,designware-rtc.yaml
+F:	Documentation/devicetree/bindings/sound/alif,alif-pcm-card.yaml
+F:	Documentation/devicetree/bindings/sound/alif,alif-pcm.yaml
 F:	Documentation/devicetree/bindings/sound/invensense,t5848.yaml
 F:	Documentation/devicetree/bindings/usb/alif,ensemble-usb3.yaml
 F:	drivers/crypto/alif-crc.c

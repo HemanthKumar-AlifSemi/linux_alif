@@ -1,0 +1,32 @@
+# SPDX-License-Identifier: (GPL-2.0 OR BSD-2-Clause)
+$id: "http://devicetree.org/schemas/sound/alif,alif-pcm-card.yaml#"
+$schema: "http://devicetree.org/meta-schemas/core.yaml#"
+
+title: Alif Ensemble SoC Sound Card
+
+description: |
+  Binding for the Alif Ensemble SoC Sound Card.
+
+maintainers:
+  - Hemanth Kumar <hemanth@alifsemi.com>
+
+properties:
+  compatible:
+    const: alif,alif-pcm-card
+
+  clocks:
+    maxItems: 1
+    description: Input clock specifier. Should be <&syst_pclk 0>.
+
+required:
+  - compatible
+  - clocks
+
+additionalProperties: false
+
+examples:
+  - |
+    pcmcard: pcmcard@4902D800 {
+      compatible = "alif,alif-pcm-card";
+      clocks = <&syst_pclk 0>;
+    };
