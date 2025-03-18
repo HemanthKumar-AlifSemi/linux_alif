@@ -995,9 +995,10 @@
 
 		pdm0: pdm@4902d000 {
 			compatible = "alif,alif-pcm";
-			reg = <0x4902d000 0x800>;
-			clocks = <&psclks ENSEMBLE_SYST_PCLK>;
-			clock-names = "pclk";
+			reg = <0x4902d000 0x1000>;
+			clocks = <&psclks ENSEMBLE_SYST_PCLK>,
+				<&psclks ENSEMBLE_PDM_CLK>;
+			clock-names = "pclk", "pdm_clk";
 			interrupt-parent = <&gic>;
 			interrupts = <0 134 IRQ_TYPE_LEVEL_HIGH>;
 			status = "disabled";
