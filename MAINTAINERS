@@ -2040,6 +2040,7 @@ F:	drivers/hwspinlock/alif_hwsem.c
 F:	drivers/iio/dac/ensemble-dac.c
 F:	drivers/rtc/rtc-dw-apb.c
 F:	drivers/usb/dwc3/dwc3-ensemble.c
+F:	sound/soc/alif/*
 F:	sound/soc/codecs/t5848.c
 
 ARM/Allwinner SoC Clock Support

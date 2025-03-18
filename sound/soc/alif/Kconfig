@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: GPL-2.0
+# Copyright (C) 2022 Alif Semiconductor - All Rights Reserved
+# Use, distribution and modification of this code is permitted under the
+# terms stated in the Alif Semiconductor Software License Agreement
+#
+# You should have received a copy of the Alif Semiconductor Software
+# License Agreement with this file. If not, please write to:
+# contact@alifsemi.com, or visit: https://alifsemi.com/license
+config ALIF_PDM
+	bool "Alif PDM Audio Support"
+	help
+	 Enable this option to include the Alif PDM audio driver in the kernel.
+	 This driver supports Pulse Code Modulation (PCM) audio streams on Alif
+	 System-on-Chips (SoCs), enabling playback and recording capabilities.
+	 It handles various audio formats and sampling rates for efficient audio
+	 data processing. The PDM module generates the clock and converts the
+	 incoming 1-bit PDM stream into 16-bit PCM values.
