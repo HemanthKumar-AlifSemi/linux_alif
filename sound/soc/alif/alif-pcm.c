@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
  * PDM Driver for Alif PDM module
- * Copyright (C) 2022 Alif Semiconductor - All Rights Reserved.
+ * Copyright (C) 2021-2025 Alif Semiconductor - All Rights Reserved.
  * Use, distribution and modification of this code is permitted under the
  * terms stated in the Alif Semiconductor Software License Agreement
  *
@@ -36,14 +36,14 @@
 #include <linux/jiffies.h>
 #include "fir_coefficient_defines.h"
 
-#define MODE_FREQ_MODE_0 1
-#define MODE_FREQ_8K 8000
-#define MODE_FREQ_16K 16000
-#define MODE_FREQ_32K 32000
-#define MODE_FREQ_48K 48000
-#define MODE_FREQ_96K 96000
-#define MODE_FREQ_192K 192000
-#define OWN_TIME 100
+#define MODE_FREQ_MODE_0	1
+#define MODE_FREQ_8K		8000
+#define MODE_FREQ_16K		16000
+#define MODE_FREQ_32K		32000
+#define MODE_FREQ_48K		48000
+#define MODE_FREQ_96K		96000
+#define MODE_FREQ_192K		192000
+#define OWN_TIME		100
 
 #define PDM_CTL0_REG				0x0000
 #define PDM_CTL1_REG				0x0004
@@ -63,20 +63,68 @@
 #define BITS_PER_SAMPLE				(sizeof(unsigned char) * 2 * 8)
 #define ODD_CHANNEL_SAMPLE_MASK			(0x0000FFFF)
 #define EVEN_CHANNEL_SAMPLE_MASK			(0xFFFF0000)
+#define ALIF_PDM_ALL_CHANNELS			0xFF
+#define FIFO_WATERMARK_VALUE			0x1
 
-#define BYPASS_IIR_FILTER       2
-#define CONFIG_BITS             16
+#define BYPASS_IIR_FILTER	2
+#define CONFIG_BITS		16
 
 #define ALIF_PCM_RATES          SNDRV_PCM_RATE_8000_192000
 #define ALIF_PCM_FORMATS        (SNDRV_PCM_FMTBIT_S16_LE)
 
 #define MAX_CHANNELS            8
 
+#define CHANNEL_OFFSET		0x100
+#define NUM_CHANNELS		8
+#define NUM_COEFFICIENTS	18
+
 #define MIN_PERIODS             (4)
 #define MAX_PERIODS             (MAX_BUFFER_BYTES / MIN_PERIOD_BYTES)
 #define MIN_PERIOD_BYTES	(6400)
 #define MAX_BUFFER_BYTES	(2 * MIN_PERIOD_BYTES * MIN_PERIODS * 10)
 #define MAX_PERIOD_BYTES	(MAX_BUFFER_BYTES / MIN_PERIODS)
+
+#define PDM_IRQ_DISABLE		0x0
+#define PDM_MASK_CHANNEL_0	(1 << 0)
+#define PDM_MASK_CHANNEL_1	(1 << 1)
+#define PDM_MASK_CHANNEL_2	(1 << 2)
+#define PDM_MASK_CHANNEL_3	(1 << 3)
+#define PDM_MASK_CHANNEL_4	(1 << 4)
+#define PDM_MASK_CHANNEL_5	(1 << 5)
+#define PDM_MASK_CHANNEL_6	(1 << 6)
+#define PDM_MASK_CHANNEL_7	(1 << 7)
+
+
+static const uint32_t fir_coefficients_even[NUM_COEFFICIENTS] = {
+	0x00000000, 0x000007FF, 0x00000000, 0x00000004, 0x00000004,
+	0x000007FC, 0x00000000, 0x000007FB, 0x000007E4, 0x00000000,
+	0x0000002B, 0x00000009, 0x00000016, 0x00000049, 0x00000793,
+	0x000006F8, 0x00000045, 0x00000178
+};
+
+static const uint32_t fir_coefficients_odd[NUM_COEFFICIENTS] = {
+	0x00000001, 0x00000003, 0x00000003, 0x000007F4, 0x00000004,
+	0x000007ED, 0x000007F5, 0x000007F4, 0x000007D3, 0x000007FE,
+	0x000007BC, 0x000007E5, 0x000007D9, 0x00000793, 0x00000029,
+	0x0000072C, 0x00000072, 0x000002FD
+};
+
+static const uint32_t iir_coeff_sel = 4;
+static const uint32_t phase_values[NUM_CHANNELS] = {
+	0x00000003, 0x0000001F, 0x00000003, 0x0000001F,
+	0x0000001F, 0x00000003, 0x0000001F, 0x00000003
+};
+
+static const uint32_t gain_values[NUM_CHANNELS] = {
+	0x00000013, 0x0000000D, 0x00000013, 0x0000000D,
+	0x0000000D, 0x00000013, 0x0000000D, 0x00000013
+};
+
+static const uint32_t pkdet_th_values = 0x00060002;
+static const uint32_t pkdet_itv_values[NUM_CHANNELS] = {
+	0x00020027, 0x0004002D, 0x00020027, 0x0004002D,
+	0x0004002D, 0x00020027, 0x0004002D, 0x00020027
+};
 
 static ssize_t  modefreq_show(struct device *dev,
 		struct device_attribute *attr, char *buf);
@@ -108,7 +156,8 @@ struct alif_pcm_dev {
 
 static void pcm_setup(struct alif_pcm_dev *dev);
 static int pcm_dai_probe(struct snd_soc_dai *dai);
-static int alif_pcm_open(struct snd_pcm_substream *ss);
+static int alif_pcm_open(struct snd_soc_component *component,
+				struct snd_pcm_substream *ss);
 
 static irqreturn_t alif_pcm_interrupt(int irq, void *dev_id)
 {
@@ -148,7 +197,7 @@ static irqreturn_t alif_pcm_interrupt(int irq, void *dev_id)
 			audio_ch67 = readl_relaxed(dev->mem +
 					PDM_AUDIOOUT_CH6_CH7_REG);
 
-			if (channel_config & (1 << 0)) {
+			if (channel_config & PDM_MASK_CHANNEL_0) {
 				result1 =  (audio_ch01 &
 						ODD_CHANNEL_SAMPLE_MASK);
 				circular_buffer[dev->pdm_buffer_index++] =
@@ -159,7 +208,7 @@ static irqreturn_t alif_pcm_interrupt(int irq, void *dev_id)
 					dev->pdm_buffer_index : 0;
 			}
 
-			if (channel_config & (1 << 1)) {
+			if (channel_config & PDM_MASK_CHANNEL_1) {
 				result2 =
 					((audio_ch01 &
 					  EVEN_CHANNEL_SAMPLE_MASK) >> 16);
@@ -171,7 +220,7 @@ static irqreturn_t alif_pcm_interrupt(int irq, void *dev_id)
 					dev->pdm_buffer_index : 0;
 			}
 
-			if (channel_config & (1 << 2)) {
+			if (channel_config & PDM_MASK_CHANNEL_2) {
 				result1 =  (audio_ch23 &
 						ODD_CHANNEL_SAMPLE_MASK);
 				circular_buffer[dev->pdm_buffer_index++] =
@@ -182,7 +231,7 @@ static irqreturn_t alif_pcm_interrupt(int irq, void *dev_id)
 					dev->pdm_buffer_index : 0;
 			}
 
-			if (channel_config & (1 << 3)) {
+			if (channel_config & PDM_MASK_CHANNEL_3) {
 				result2 =
 					((audio_ch23 &
 					  EVEN_CHANNEL_SAMPLE_MASK) >> 16);
@@ -194,7 +243,7 @@ static irqreturn_t alif_pcm_interrupt(int irq, void *dev_id)
 					dev->pdm_buffer_index : 0;
 			}
 
-			if (channel_config & (1 << 4)) {
+			if (channel_config & PDM_MASK_CHANNEL_4) {
 				result1 =  (audio_ch45 &
 						ODD_CHANNEL_SAMPLE_MASK);
 				circular_buffer[dev->pdm_buffer_index++] =
@@ -205,7 +254,7 @@ static irqreturn_t alif_pcm_interrupt(int irq, void *dev_id)
 					dev->pdm_buffer_index : 0;
 			}
 
-			if (channel_config & (1 << 5)) {
+			if (channel_config & PDM_MASK_CHANNEL_5) {
 				result2 =
 					((audio_ch45 &
 					  EVEN_CHANNEL_SAMPLE_MASK) >> 16);
@@ -217,7 +266,7 @@ static irqreturn_t alif_pcm_interrupt(int irq, void *dev_id)
 					dev->pdm_buffer_index : 0;
 			}
 
-			if (channel_config & (1 << 6)) {
+			if (channel_config & PDM_MASK_CHANNEL_6) {
 				result1 =  (audio_ch67 &
 						ODD_CHANNEL_SAMPLE_MASK);
 				circular_buffer[dev->pdm_buffer_index++] =
@@ -228,7 +277,7 @@ static irqreturn_t alif_pcm_interrupt(int irq, void *dev_id)
 					dev->pdm_buffer_index : 0;
 			}
 
-			if (channel_config & (1 << 7)) {
+			if (channel_config & PDM_MASK_CHANNEL_7) {
 				result2 =
 					((audio_ch67 &
 					  EVEN_CHANNEL_SAMPLE_MASK) >> 16);
@@ -274,6 +323,7 @@ static ssize_t modefreq_show(struct device *dev,
 static ssize_t modefreq_store(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count)
 {
+
 	int ret;
 	struct alif_pcm_dev *alif_dev = dev_get_drvdata(dev);
 
@@ -309,7 +359,7 @@ static ssize_t channelsel_store(struct device *dev,
 		return -EINVAL;
 
 	}
-	alif_dev->channel = channel_map & 0xff;
+	alif_dev->channel = channel_map & ALIF_PDM_ALL_CHANNELS;
 
 	return count;
 }
@@ -327,7 +377,7 @@ static int alif_pcm_hw_params(struct snd_pcm_substream *substream,
 	rate = params_rate(params);
 
 	writel_relaxed(0x1 << BYPASS_IIR_FILTER, dev->mem + PDM_CTL1_REG);
-	writel_relaxed(0x1, dev->mem + PDM_FIFO_WATERMARK_H_REG);
+	writel_relaxed(FIFO_WATERMARK_VALUE, dev->mem + PDM_FIFO_WATERMARK_H_REG);
 
 	switch (rate) {
 	case MODE_FREQ_MODE_0:
@@ -468,207 +518,28 @@ static int alif_pcm_hw_params(struct snd_pcm_substream *substream,
 
 static void pcm_setup(struct alif_pcm_dev *dev)
 {
-	writel_relaxed(0x00000000, (dev->mem + PDM_CH0_FIR_COEF_0));
-	writel_relaxed(0x000007FF, (dev->mem + PDM_CH0_FIR_COEF_1));
-	writel_relaxed(0x00000000, (dev->mem + PDM_CH0_FIR_COEF_2));
-	writel_relaxed(0x00000004, (dev->mem + PDM_CH0_FIR_COEF_3));
-	writel_relaxed(0x00000004, (dev->mem + PDM_CH0_FIR_COEF_4));
-	writel_relaxed(0x000007FC, (dev->mem + PDM_CH0_FIR_COEF_5));
-	writel_relaxed(0x00000000, (dev->mem + PDM_CH0_FIR_COEF_6));
-	writel_relaxed(0x000007FB, (dev->mem + PDM_CH0_FIR_COEF_7));
-	writel_relaxed(0x000007E4, (dev->mem + PDM_CH0_FIR_COEF_8));
-	writel_relaxed(0x00000000, (dev->mem + PDM_CH0_FIR_COEF_9));
-	writel_relaxed(0x0000002B, (dev->mem + PDM_CH0_FIR_COEF_10));
-	writel_relaxed(0x00000009, (dev->mem + PDM_CH0_FIR_COEF_11));
-	writel_relaxed(0x00000016, (dev->mem + PDM_CH0_FIR_COEF_12));
-	writel_relaxed(0x00000049, (dev->mem + PDM_CH0_FIR_COEF_13));
-	writel_relaxed(0x00000793, (dev->mem + PDM_CH0_FIR_COEF_14));
-	writel_relaxed(0x000006F8, (dev->mem + PDM_CH0_FIR_COEF_15));
-	writel_relaxed(0x00000045, (dev->mem + PDM_CH0_FIR_COEF_16));
-	writel_relaxed(0x00000178, (dev->mem + PDM_CH0_FIR_COEF_17));
-	writel_relaxed(0x00000004, (dev->mem + PDM_CH0_IIR_COEF_SEL));
-	writel_relaxed(0x00000003, (dev->mem + PDM_CH0_PHASE));
-	writel_relaxed(0x00000013, (dev->mem + PDM_CH0_GAIN));
-	writel_relaxed(0x00060002, (dev->mem + PDM_CH0_PKDET_TH));
-	writel_relaxed(0x00020027, (dev->mem + PDM_CH0_PKDET_ITV));
+	for (int ch = 0; ch < NUM_CHANNELS; ch++) {
+		const uint32_t *coefficients = (ch % 2 == 0) ?
+				fir_coefficients_even : fir_coefficients_odd;
 
-	writel_relaxed(0x00000001, (dev->mem + PDM_CH1_FIR_COEF_0));
-	writel_relaxed(0x00000003, (dev->mem + PDM_CH1_FIR_COEF_1));
-	writel_relaxed(0x00000003, (dev->mem + PDM_CH1_FIR_COEF_2));
-	writel_relaxed(0x000007F4, (dev->mem + PDM_CH1_FIR_COEF_3));
-	writel_relaxed(0x00000004, (dev->mem + PDM_CH1_FIR_COEF_4));
-	writel_relaxed(0x000007ED, (dev->mem + PDM_CH1_FIR_COEF_5));
-	writel_relaxed(0x000007F5, (dev->mem + PDM_CH1_FIR_COEF_6));
-	writel_relaxed(0x000007F4, (dev->mem + PDM_CH1_FIR_COEF_7));
-	writel_relaxed(0x000007D3, (dev->mem + PDM_CH1_FIR_COEF_8));
-	writel_relaxed(0x000007FE, (dev->mem + PDM_CH1_FIR_COEF_9));
-	writel_relaxed(0x000007BC, (dev->mem + PDM_CH1_FIR_COEF_10));
-	writel_relaxed(0x000007E5, (dev->mem + PDM_CH1_FIR_COEF_11));
-	writel_relaxed(0x000007D9, (dev->mem + PDM_CH1_FIR_COEF_12));
-	writel_relaxed(0x00000793, (dev->mem + PDM_CH1_FIR_COEF_13));
-	writel_relaxed(0x00000029, (dev->mem + PDM_CH1_FIR_COEF_14));
-	writel_relaxed(0x0000072C, (dev->mem + PDM_CH1_FIR_COEF_15));
-	writel_relaxed(0x00000072, (dev->mem + PDM_CH1_FIR_COEF_16));
-	writel_relaxed(0x000002FD, (dev->mem + PDM_CH1_FIR_COEF_17));
-	writel_relaxed(0x00000004, (dev->mem + PDM_CH1_IIR_COEF_SEL));
-	writel_relaxed(0x0000001F, (dev->mem + PDM_CH1_PHASE));
-	writel_relaxed(0x0000000D, (dev->mem + PDM_CH1_GAIN));
-	writel_relaxed(0x00060002, (dev->mem + PDM_CH1_PKDET_TH));
-	writel_relaxed(0x0004002D, (dev->mem + PDM_CH1_PKDET_ITV));
+	for (int i = 0; i < NUM_COEFFICIENTS; i++) {
+		writel_relaxed(coefficients[i], dev->mem +
+				PDM_CH0_FIR_COEF_0 + (ch * CHANNEL_OFFSET) + (i * 4));
+	}
 
-	writel_relaxed(0x00000000, (dev->mem + PDM_CH2_FIR_COEF_0));
-	writel_relaxed(0x000007FF, (dev->mem + PDM_CH2_FIR_COEF_1));
-	writel_relaxed(0x00000000, (dev->mem + PDM_CH2_FIR_COEF_2));
-	writel_relaxed(0x00000004, (dev->mem + PDM_CH2_FIR_COEF_3));
-	writel_relaxed(0x00000004, (dev->mem + PDM_CH2_FIR_COEF_4));
-	writel_relaxed(0x000007FC, (dev->mem + PDM_CH2_FIR_COEF_5));
-	writel_relaxed(0x00000000, (dev->mem + PDM_CH2_FIR_COEF_6));
-	writel_relaxed(0x000007FB, (dev->mem + PDM_CH2_FIR_COEF_7));
-	writel_relaxed(0x000007E4, (dev->mem + PDM_CH2_FIR_COEF_8));
-	writel_relaxed(0x00000000, (dev->mem + PDM_CH2_FIR_COEF_9));
-	writel_relaxed(0x0000002B, (dev->mem + PDM_CH2_FIR_COEF_10));
-	writel_relaxed(0x00000009, (dev->mem + PDM_CH2_FIR_COEF_11));
-	writel_relaxed(0x00000016, (dev->mem + PDM_CH2_FIR_COEF_12));
-	writel_relaxed(0x00000049, (dev->mem + PDM_CH2_FIR_COEF_13));
-	writel_relaxed(0x00000793, (dev->mem + PDM_CH2_FIR_COEF_14));
-	writel_relaxed(0x000006F8, (dev->mem + PDM_CH2_FIR_COEF_15));
-	writel_relaxed(0x00000045, (dev->mem + PDM_CH2_FIR_COEF_16));
-	writel_relaxed(0x00000178, (dev->mem + PDM_CH2_FIR_COEF_17));
-	writel_relaxed(0x00000004, (dev->mem + PDM_CH2_IIR_COEF_SEL));
-	writel_relaxed(0x00000003, (dev->mem + PDM_CH2_PHASE));
-	writel_relaxed(0x00000013, (dev->mem + PDM_CH2_GAIN));
-	writel_relaxed(0x00060002, (dev->mem + PDM_CH2_PKDET_TH));
-	writel_relaxed(0x00020027, (dev->mem + PDM_CH2_PKDET_ITV));
-
-	writel_relaxed(0x00000001, (dev->mem + PDM_CH3_FIR_COEF_0));
-	writel_relaxed(0x00000003, (dev->mem + PDM_CH3_FIR_COEF_1));
-	writel_relaxed(0x00000003, (dev->mem + PDM_CH3_FIR_COEF_2));
-	writel_relaxed(0x000007F4, (dev->mem + PDM_CH3_FIR_COEF_3));
-	writel_relaxed(0x00000004, (dev->mem + PDM_CH3_FIR_COEF_4));
-	writel_relaxed(0x000007ED, (dev->mem + PDM_CH3_FIR_COEF_5));
-	writel_relaxed(0x000007F5, (dev->mem + PDM_CH3_FIR_COEF_6));
-	writel_relaxed(0x000007F4, (dev->mem + PDM_CH3_FIR_COEF_7));
-	writel_relaxed(0x000007D3, (dev->mem + PDM_CH3_FIR_COEF_8));
-	writel_relaxed(0x000007FE, (dev->mem + PDM_CH3_FIR_COEF_9));
-	writel_relaxed(0x000007BC, (dev->mem + PDM_CH3_FIR_COEF_10));
-	writel_relaxed(0x000007E5, (dev->mem + PDM_CH3_FIR_COEF_11));
-	writel_relaxed(0x000007D9, (dev->mem + PDM_CH3_FIR_COEF_12));
-	writel_relaxed(0x00000793, (dev->mem + PDM_CH3_FIR_COEF_13));
-	writel_relaxed(0x00000029, (dev->mem + PDM_CH3_FIR_COEF_14));
-	writel_relaxed(0x0000072C, (dev->mem + PDM_CH3_FIR_COEF_15));
-	writel_relaxed(0x00000072, (dev->mem + PDM_CH3_FIR_COEF_16));
-	writel_relaxed(0x000002FD, (dev->mem + PDM_CH3_FIR_COEF_17));
-	writel_relaxed(0x00000004, (dev->mem + PDM_CH3_IIR_COEF_SEL));
-	writel_relaxed(0x0000001F, (dev->mem + PDM_CH3_PHASE));
-	writel_relaxed(0x0000000D, (dev->mem + PDM_CH3_GAIN));
-	writel_relaxed(0x00060002, (dev->mem + PDM_CH3_PKDET_TH));
-	writel_relaxed(0x0004002D, (dev->mem + PDM_CH3_PKDET_ITV));
-
-
-	writel_relaxed(0x00000001, (dev->mem + PDM_CH4_FIR_COEF_0));
-	writel_relaxed(0x00000003, (dev->mem + PDM_CH4_FIR_COEF_1));
-	writel_relaxed(0x00000003, (dev->mem + PDM_CH4_FIR_COEF_2));
-	writel_relaxed(0x000007F4, (dev->mem + PDM_CH4_FIR_COEF_3));
-	writel_relaxed(0x00000004, (dev->mem + PDM_CH4_FIR_COEF_4));
-	writel_relaxed(0x000007ED, (dev->mem + PDM_CH4_FIR_COEF_5));
-	writel_relaxed(0x000007F5, (dev->mem + PDM_CH4_FIR_COEF_6));
-	writel_relaxed(0x000007F4, (dev->mem + PDM_CH4_FIR_COEF_7));
-	writel_relaxed(0x000007D3, (dev->mem + PDM_CH4_FIR_COEF_8));
-	writel_relaxed(0x000007FE, (dev->mem + PDM_CH4_FIR_COEF_9));
-	writel_relaxed(0x000007BC, (dev->mem + PDM_CH4_FIR_COEF_10));
-	writel_relaxed(0x000007E5, (dev->mem + PDM_CH4_FIR_COEF_11));
-	writel_relaxed(0x000007D9, (dev->mem + PDM_CH4_FIR_COEF_12));
-	writel_relaxed(0x00000793, (dev->mem + PDM_CH4_FIR_COEF_13));
-	writel_relaxed(0x00000029, (dev->mem + PDM_CH4_FIR_COEF_14));
-	writel_relaxed(0x0000072C, (dev->mem + PDM_CH4_FIR_COEF_15));
-	writel_relaxed(0x00000072, (dev->mem + PDM_CH4_FIR_COEF_16));
-	writel_relaxed(0x000002FD, (dev->mem + PDM_CH4_FIR_COEF_17));
-	writel_relaxed(0x00000004, (dev->mem + PDM_CH4_IIR_COEF_SEL));
-	writel_relaxed(0x0000001F, (dev->mem + PDM_CH4_PHASE));
-	writel_relaxed(0x0000000D, (dev->mem + PDM_CH4_GAIN));
-	writel_relaxed(0x00060002, (dev->mem + PDM_CH4_PKDET_TH));
-	writel_relaxed(0x0004002D, (dev->mem + PDM_CH4_PKDET_ITV));
-
-	writel_relaxed(0x00000000, (dev->mem + PDM_CH5_FIR_COEF_0));
-	writel_relaxed(0x000007FF, (dev->mem + PDM_CH5_FIR_COEF_1));
-	writel_relaxed(0x00000000, (dev->mem + PDM_CH5_FIR_COEF_2));
-	writel_relaxed(0x00000004, (dev->mem + PDM_CH5_FIR_COEF_3));
-	writel_relaxed(0x00000004, (dev->mem + PDM_CH5_FIR_COEF_4));
-	writel_relaxed(0x000007FC, (dev->mem + PDM_CH5_FIR_COEF_5));
-	writel_relaxed(0x00000000, (dev->mem + PDM_CH5_FIR_COEF_6));
-	writel_relaxed(0x000007FB, (dev->mem + PDM_CH5_FIR_COEF_7));
-	writel_relaxed(0x000007E4, (dev->mem + PDM_CH5_FIR_COEF_8));
-	writel_relaxed(0x00000000, (dev->mem + PDM_CH5_FIR_COEF_9));
-	writel_relaxed(0x0000002B, (dev->mem + PDM_CH5_FIR_COEF_10));
-	writel_relaxed(0x00000009, (dev->mem + PDM_CH5_FIR_COEF_11));
-	writel_relaxed(0x00000016, (dev->mem + PDM_CH5_FIR_COEF_12));
-	writel_relaxed(0x00000049, (dev->mem + PDM_CH5_FIR_COEF_13));
-	writel_relaxed(0x00000793, (dev->mem + PDM_CH5_FIR_COEF_14));
-	writel_relaxed(0x000006F8, (dev->mem + PDM_CH5_FIR_COEF_15));
-	writel_relaxed(0x00000045, (dev->mem + PDM_CH5_FIR_COEF_16));
-	writel_relaxed(0x00000178, (dev->mem + PDM_CH5_FIR_COEF_17));
-	writel_relaxed(0x00000004, (dev->mem + PDM_CH5_IIR_COEF_SEL));
-	writel_relaxed(0x00000003, (dev->mem + PDM_CH5_PHASE));
-	writel_relaxed(0x00000013, (dev->mem + PDM_CH5_GAIN));
-	writel_relaxed(0x00060002, (dev->mem + PDM_CH5_PKDET_TH));
-	writel_relaxed(0x00020027, (dev->mem + PDM_CH5_PKDET_ITV));
-
-	writel_relaxed(0x00000001, (dev->mem + PDM_CH6_FIR_COEF_0));
-	writel_relaxed(0x00000003, (dev->mem + PDM_CH6_FIR_COEF_1));
-	writel_relaxed(0x00000003, (dev->mem + PDM_CH6_FIR_COEF_2));
-	writel_relaxed(0x000007F4, (dev->mem + PDM_CH6_FIR_COEF_3));
-	writel_relaxed(0x00000004, (dev->mem + PDM_CH6_FIR_COEF_4));
-	writel_relaxed(0x000007ED, (dev->mem + PDM_CH6_FIR_COEF_5));
-	writel_relaxed(0x000007F5, (dev->mem + PDM_CH6_FIR_COEF_6));
-	writel_relaxed(0x000007F4, (dev->mem + PDM_CH6_FIR_COEF_7));
-	writel_relaxed(0x000007D3, (dev->mem + PDM_CH6_FIR_COEF_8));
-	writel_relaxed(0x000007FE, (dev->mem + PDM_CH6_FIR_COEF_9));
-	writel_relaxed(0x000007BC, (dev->mem + PDM_CH6_FIR_COEF_10));
-	writel_relaxed(0x000007E5, (dev->mem + PDM_CH6_FIR_COEF_11));
-	writel_relaxed(0x000007D9, (dev->mem + PDM_CH6_FIR_COEF_12));
-	writel_relaxed(0x00000793, (dev->mem + PDM_CH6_FIR_COEF_13));
-	writel_relaxed(0x00000029, (dev->mem + PDM_CH6_FIR_COEF_14));
-	writel_relaxed(0x0000072C, (dev->mem + PDM_CH6_FIR_COEF_15));
-	writel_relaxed(0x00000072, (dev->mem + PDM_CH6_FIR_COEF_16));
-	writel_relaxed(0x000002FD, (dev->mem + PDM_CH6_FIR_COEF_17));
-	writel_relaxed(0x00000004, (dev->mem + PDM_CH6_IIR_COEF_SEL));
-	writel_relaxed(0x0000001F, (dev->mem + PDM_CH6_PHASE));
-	writel_relaxed(0x0000000D, (dev->mem + PDM_CH6_GAIN));
-	writel_relaxed(0x00060002, (dev->mem + PDM_CH6_PKDET_TH));
-	writel_relaxed(0x0004002D, (dev->mem + PDM_CH6_PKDET_ITV));
-
-
-	writel_relaxed(0x00000000, (dev->mem + PDM_CH7_FIR_COEF_0));
-	writel_relaxed(0x000007FF, (dev->mem + PDM_CH7_FIR_COEF_1));
-	writel_relaxed(0x00000000, (dev->mem + PDM_CH7_FIR_COEF_2));
-	writel_relaxed(0x00000004, (dev->mem + PDM_CH7_FIR_COEF_3));
-	writel_relaxed(0x00000004, (dev->mem + PDM_CH7_FIR_COEF_4));
-	writel_relaxed(0x000007FC, (dev->mem + PDM_CH7_FIR_COEF_5));
-	writel_relaxed(0x00000000, (dev->mem + PDM_CH7_FIR_COEF_6));
-	writel_relaxed(0x000007FB, (dev->mem + PDM_CH7_FIR_COEF_7));
-	writel_relaxed(0x000007E4, (dev->mem + PDM_CH7_FIR_COEF_8));
-	writel_relaxed(0x00000000, (dev->mem + PDM_CH7_FIR_COEF_9));
-	writel_relaxed(0x0000002B, (dev->mem + PDM_CH7_FIR_COEF_10));
-	writel_relaxed(0x00000009, (dev->mem + PDM_CH7_FIR_COEF_11));
-	writel_relaxed(0x00000016, (dev->mem + PDM_CH7_FIR_COEF_12));
-	writel_relaxed(0x00000049, (dev->mem + PDM_CH7_FIR_COEF_13));
-	writel_relaxed(0x00000793, (dev->mem + PDM_CH7_FIR_COEF_14));
-	writel_relaxed(0x000006F8, (dev->mem + PDM_CH7_FIR_COEF_15));
-	writel_relaxed(0x00000045, (dev->mem + PDM_CH7_FIR_COEF_16));
-	writel_relaxed(0x00000178, (dev->mem + PDM_CH7_FIR_COEF_17));
-	writel_relaxed(0x00000004, (dev->mem + PDM_CH7_IIR_COEF_SEL));
-	writel_relaxed(0x00000003, (dev->mem + PDM_CH7_PHASE));
-	writel_relaxed(0x00000013, (dev->mem + PDM_CH7_GAIN));
-	writel_relaxed(0x00060002, (dev->mem + PDM_CH7_PKDET_TH));
-	writel_relaxed(0x00020027, (dev->mem + PDM_CH7_PKDET_ITV));
+	writel_relaxed(iir_coeff_sel, dev->mem + PDM_CH0_IIR_COEF_SEL + (ch * CHANNEL_OFFSET));
+	writel_relaxed(phase_values[ch], dev->mem + PDM_CH0_PHASE + (ch * CHANNEL_OFFSET));
+	writel_relaxed(gain_values[ch], dev->mem + PDM_CH0_GAIN + (ch * CHANNEL_OFFSET));
+	writel_relaxed(pkdet_th_values, dev->mem + PDM_CH0_PKDET_TH + (ch * CHANNEL_OFFSET));
+	writel_relaxed(pkdet_itv_values[ch], dev->mem + PDM_CH0_PKDET_ITV + (ch * CHANNEL_OFFSET));
+	}
 }
 
 static void disable_interrupts(struct alif_pcm_dev *dev)
 {
-	writel_relaxed(0x0, dev->mem + PDM_IRQ_ENABLE_REG);
+	writel_relaxed(PDM_IRQ_DISABLE, dev->mem + PDM_IRQ_ENABLE_REG);
 
 }
-
 
 static void enable_interrupts(struct alif_pcm_dev *dev)
 {
@@ -718,10 +589,11 @@ static const struct snd_soc_dai_ops alif_pcm_dai_ops = {
 	.startup	= alif_pcm_startup,
 	.hw_params	= alif_pcm_hw_params,
 	.trigger	= alif_pcm_trigger,
+	.probe		= pcm_dai_probe,
 };
 
 static struct snd_soc_dai_driver alif_pcm_dai = {
-	.probe = pcm_dai_probe,
+	.name = "alifpcm",
 	.capture = {
 			.stream_name = "alif-pcm",
 			.channels_min = 1,
@@ -750,18 +622,20 @@ static int pcm_dai_probe(struct snd_soc_dai *dai)
 	return 0;
 }
 
-static snd_pcm_uframes_t component_get_pointer(struct snd_pcm_substream *ss)
+static snd_pcm_uframes_t component_get_pointer(struct snd_soc_component *component,
+						struct snd_pcm_substream *ss)
 {
 	struct alif_pcm_dev *dev = ss->runtime->private_data;
 
 	return READ_ONCE(dev->pdm_buffer_ptr);
 }
 
-static int alif_pcm_open(struct snd_pcm_substream *ss)
+static int alif_pcm_open(struct snd_soc_component *component,
+				struct snd_pcm_substream *ss)
 {
 	struct snd_pcm_runtime *runtime = ss->runtime;
-	struct snd_soc_pcm_runtime *rtd = ss->private_data;
-	struct alif_pcm_dev *dev = snd_soc_dai_get_drvdata(rtd->cpu_dai);
+	struct snd_soc_pcm_runtime *rtd = snd_soc_substream_to_rtd(ss);
+	struct alif_pcm_dev *dev = snd_soc_dai_get_drvdata(snd_soc_rtd_to_cpu(rtd, 0));
 
 	ss->f_flags = 0;
 	snd_soc_set_runtime_hwparams(ss, &params_capture);
@@ -770,32 +644,21 @@ static int alif_pcm_open(struct snd_pcm_substream *ss)
 	return 0;
 }
 
-static int alif_pcm_new(struct snd_soc_pcm_runtime *rtd)
+static int alif_pcm_new(struct snd_soc_component *component,
+			struct snd_soc_pcm_runtime *rtd)
 {
 	size_t size = params_capture.buffer_bytes_max;
-
-	snd_pcm_lib_preallocate_pages_for_all(rtd->pcm,
-			SNDRV_DMA_TYPE_CONTINUOUS,
-			snd_dma_continuous_data(GFP_KERNEL), size, size);
+	snd_pcm_set_managed_buffer_all(rtd->pcm, SNDRV_DMA_TYPE_CONTINUOUS,
+				NULL, size, size);
 	return 0;
 }
 
-static void alif_pcm_free(struct snd_pcm *pcm)
-{
-	snd_pcm_lib_preallocate_free_for_all(pcm);
-}
-
-
-static const struct snd_pcm_ops alif_pcm_ops = {
-		.open =  alif_pcm_open,
-		.pointer = component_get_pointer,
-};
 
 static const struct snd_soc_component_driver alif_pcm_component = {
 		.name = "alif-pcm",
-		.pcm_new = alif_pcm_new,
-		.pcm_free = alif_pcm_free,
-		.ops = &alif_pcm_ops,
+		.open = alif_pcm_open,
+		.pcm_construct = alif_pcm_new,
+		.pointer = component_get_pointer,
 };
 
 static int alif_pcm_probe(struct platform_device *pdev)
@@ -840,7 +703,7 @@ static int alif_pcm_probe(struct platform_device *pdev)
 		return err;
 	}
 
-	dev->pclk = devm_clk_get(&pdev->dev, "pclk");
+	dev->pclk = devm_clk_get(&pdev->dev, "pdm_clk");
 	if (IS_ERR(dev->pclk)) {
 		err = PTR_ERR(dev->pclk);
 		dev_err(&pdev->dev,
@@ -849,7 +712,7 @@ static int alif_pcm_probe(struct platform_device *pdev)
 	}
 
 	/*Enabling all channels by default */
-	dev->channel = 0xff;
+	dev->channel = ALIF_PDM_ALL_CHANNELS;
 	dev->dev = &pdev->dev;
 
 	platform_set_drvdata(pdev, dev);
@@ -887,12 +750,10 @@ static int alif_pcm_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static int alif_pcm_remove(struct platform_device *pdev)
+static void alif_pcm_remove(struct platform_device *pdev)
 {
 	struct alif_pcm_dev *dev = platform_get_drvdata(pdev);
-
 	clk_disable_unprepare(dev->pclk);
-	return 0;
 }
 
 #ifdef CONFIG_OF
@@ -914,5 +775,6 @@ static struct platform_driver alif_pcm_driver = {
 };
 module_platform_driver(alif_pcm_driver);
 
+MODULE_AUTHOR("Aravind Krishnan <aravind.krishnan@alifsemi.com>");
 MODULE_LICENSE("GPL");
-MODULE_DESCRIPTION("Alif PCM Driver");
+MODULE_DESCRIPTION("Alif PDM Driver");

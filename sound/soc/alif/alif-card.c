@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
  * PDM sound card driver for Alif PDM module
- * Copyright (C) 2022 Alif Semiconductor - All Rights Reserved.
+ * Copyright (C) 2021-2025 Alif Semiconductor - All Rights Reserved.
  * Use, distribution and modification of this code is permitted under the
  * terms stated in the Alif Semiconductor Software License Agreement
  *
@@ -68,20 +68,15 @@ static int alif_pcm_card_probe(struct platform_device *pdev)
 	return err;
 }
 
-static void alif_pcm_card_remove(struct platform_device *pdev)
-{
-
-}
-
 static struct platform_driver alif_pcm_card_driver = {
 	.driver		= {
 		.name	= "alif_pcm_card",
 		.of_match_table = alif_pcm_dt_ids,
 	},
 	.probe		= alif_pcm_card_probe,
-	.remove		= alif_pcm_card_remove,
 };
 module_platform_driver(alif_pcm_card_driver);
 
 MODULE_LICENSE("GPL");
-MODULE_DESCRIPTION("Alif PCM sound card driver");
+MODULE_DESCRIPTION("Alif PDM sound card driver");
+MODULE_AUTHOR("Aravind Krishnan <aravind.krishnan@alifsemi.com>");
