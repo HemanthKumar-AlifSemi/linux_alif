@@ -20,7 +20,14 @@
 #include <linux/semaphore.h>
 #include <linux/slab.h>
 #include <linux/rpmsg.h>
+#include <linux/platform_device.h>
 #include "rpmsg_internal.h"
+#include <linux/mailbox/arm_mhuv2_message.h>
+#include <linux/ioctl.h>
+#include <linux/module.h>
+#include <linux/fs.h>
+#include <linux/miscdevice.h>
+#include <linux/uaccess.h>
 
 #define RPMSG_NAME	"arm_rpmsg"
 #define RPMSG_ADDR_ANY	0xFFFFFFFF
@@ -31,9 +38,15 @@ struct arm_channel {
 	struct mbox_chan *mbox;
 };
 
+#define RPMSG_IOCTL_MAGIC  'k'
+#define RPMSG_IOCTL_SETVAL _IOW(RPMSG_IOCTL_MAGIC, 1, unsigned int)
+#define RPMSG_IOCTL_GETVAL _IOR(RPMSG_IOCTL_MAGIC, 2, unsigned int)
+#define RPMSG_IOCTL_MAXNR 2
+
 #define arm_channel_from_rpmsg(_ept) container_of(_ept, struct arm_channel, ept)
 #define arm_channel_from_mbox(_ept) container_of(_ept, struct arm_channel, cl)
 
+static atomic_t kernel_value = ATOMIC_INIT(0);
 
 static void arm_msg_rx_handler(struct mbox_client *cl, void *mssg)
 {
@@ -61,9 +74,22 @@ static int arm_send(struct rpmsg_endpoint *ept, void *data, int len)
 	return 0;
 }
 
+static int arm_sendto(struct rpmsg_endpoint *ept, void *data, int len, u32 dest)
+{
+	struct arm_mhuv2_mbox_msg msg;
+	struct arm_channel *channel = arm_channel_from_rpmsg(ept);
+
+	msg.data = data;
+	msg.len = len;
+	mbox_send_message(channel->mbox, &msg);
+	return 0;
+}
+
+
 static const struct rpmsg_endpoint_ops arm_endpoint_ops = {
 	.destroy_ept = arm_destroy_ept,
 	.send = arm_send,
+	.sendto = arm_sendto,
 };
 
 
@@ -110,11 +136,48 @@ static void arm_release_device(struct device *dev)
 	kfree(rpdev);
 }
 
+static long rpmsg_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+{
+	uint32_t user_value, temp;
+	int ret = 0;
+
+	switch (cmd) {
+	case RPMSG_IOCTL_SETVAL:
+		if (copy_from_user(&user_value, (uint32_t __user *)arg, sizeof(user_value)))
+			ret = -EFAULT;
+		atomic_set(&kernel_value, user_value);
+		break;
+
+	case RPMSG_IOCTL_GETVAL:
+		temp = readl((void __iomem *)(uintptr_t)atomic_read(&kernel_value));
+		if (copy_to_user((uint32_t __user *)arg, &temp, sizeof(temp)))
+			ret = -EFAULT;
+		break;
+
+	default:
+		ret = -ENOTTY;
+	}
+	return ret;
+}
+
+static const struct file_operations rpmsg_fops = {
+	.owner = THIS_MODULE,
+	.unlocked_ioctl = rpmsg_ioctl,
+	.compat_ioctl = rpmsg_ioctl,
+};
+
+static struct miscdevice rpmsg_misc_device = {
+	.minor = MISC_DYNAMIC_MINOR,
+	.name = "rpmsg_device",
+	.fops = &rpmsg_fops,
+	.mode = 0666,
+};
 
 static int client_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
 	struct rpmsg_device *rpdev;
+	int ret;
 
 	rpdev = kzalloc(sizeof(*rpdev), GFP_KERNEL);
 	if (!rpdev)
@@ -129,7 +192,17 @@ static int client_probe(struct platform_device *pdev)
 	rpdev->dev.parent = dev;
 	rpdev->dev.release = arm_release_device;
 
+	ret = misc_register(&rpmsg_misc_device);
+	if (ret) {
+		dev_err(dev, "couldn't register misc device: %d\n", ret);
+		goto misc_destroy_device;
+	}
+
 	return rpmsg_ctrldev_register_device(rpdev);
+
+misc_destroy_device:
+		misc_deregister(&rpmsg_misc_device);
+		return ret;
 }
 
 static const struct of_device_id client_of_match[] = {
