@@ -26,12 +26,18 @@
 #define HWSEM15_STATUS "disabled"
 
 /* MHU defines */
-#define RTSS_HP_MHU0_STATUS "okay"
-#define RTSS_HP_MHU1_STATUS "okay"
-#define RTSS_HE_MHU0_STATUS "okay"
-#define RTSS_HE_MHU1_STATUS "okay"
-#define SE_MHU0_STATUS "okay"
-#define SE_MHU1_STATUS "okay"
+#define M55_HP_MHU0_TX_STATUS "okay"
+#define M55_HP_MHU1_TX_STATUS "okay"
+#define M55_HP_MHU0_RX_STATUS "okay"
+#define M55_HP_MHU1_RX_STATUS "okay"
+#define M55_HE_MHU0_TX_STATUS "okay"
+#define M55_HE_MHU1_TX_STATUS "okay"
+#define M55_HE_MHU0_RX_STATUS "okay"
+#define M55_HE_MHU1_RX_STATUS "okay"
+#define SE_MHU0_TX_STATUS "okay"
+#define SE_MHU1_TX_STATUS "okay"
+#define SE_MHU0_RX_STATUS "okay"
+#define SE_MHU1_RX_STATUS "okay"
 
 /* Ethernet defines */
 #define ETH_STATUS "disabled"

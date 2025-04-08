@@ -149,95 +149,173 @@
 		};
 	};
 
-	mbox_m55_hp_mhu0: mhu@1b000000 {
-		compatible = "arm,mhuv2","arm,primecell";
-		reg = <0x1b000000 0x1000>,
-		      <0x1b010000 0x1000>;
-		clocks = <&psclks ENSEMBLE_SYST_PCLK>;
-		clock-names = "syst_pclk";
+	mbox_m55_hp_mhu0_tx: mhu@1b000000 {
+		compatible = "arm,mhuv2-tx","arm,primecell";
+		reg = <0x1b000000 0x1000>;
+		clocks = <&psclks ENSEMBLE_SYST_ACLK>;
+		clock-names = "apb_pclk";
+		interrupts = <0 11 4>;
+		interrupt-names = "mhu_tx";
+		arm,mhuv2-protocols = <1 1>, <1 1>;
+		#mbox-cells = <2>;
+		mbox-name = "arm-m55_hp-mhu0_tx";
+		status = "disabled";
+	};
+	mbox_m55_hp_mhu1_tx: mhu@1b020000 {
+		compatible = "arm,mhuv2-tx","arm,primecell";
+		reg = <0x1b020000 0x1000>;
+		clocks = <&psclks ENSEMBLE_SYST_ACLK>;
+		clock-names = "apb_pclk";
+		interrupts = <0 46 4>;
+		interrupt-names = "mhu_tx";
+		arm,mhuv2-protocols = <1 1>, <1 1>;
+		#mbox-cells = <2>;
+		mbox-name = "arm-m55_hp-mhu1_tx";
+		status = "disabled";
+	};
+	mbox_m55_hp_mhu0_rx: mhu@1b010000 {
+		compatible = "arm,mhuv2-rx","arm,primecell";
+		reg = <0x1b010000 0x1000>;
+		clocks = <&psclks ENSEMBLE_SYST_ACLK>;
+		clock-names = "apb_pclk";
 		interrupts = <0 12 4>;
 		interrupt-names = "mhu_rx";
-		#mbox-cells = <1>;
-		mbox-name = "arm-m55_hp-mhu0";
+		arm,mhuv2-protocols = <1 1>, <1 1>;
+		#mbox-cells = <2>;
+		mbox-name = "arm-m55_hp-mhu0_rx";
 		status = "disabled";
 	};
-
-	mbox_m55_hp_mhu1: mhu@1b020000 {
-		compatible = "arm,mhuv2","arm,primecell";
-		reg = <0x1b020000 0x1000>,
-		      <0x1b030000 0x1000>;
-		clocks = <&psclks ENSEMBLE_SYST_PCLK>;
-		clock-names = "syst_pclk";
+	mbox_m55_hp_mhu1_rx: mhu@1b030000 {
+		compatible = "arm,mhuv2-rx","arm,primecell";
+		reg = <0x1b030000 0x1000>;
+		clocks = <&psclks ENSEMBLE_SYST_ACLK>;
+		clock-names = "apb_pclk";
 		interrupts = <0 47 4>;
 		interrupt-names = "mhu_rx";
-		#mbox-cells = <1>;
-		mbox-name = "arm-m55_hp-mhu1";
+		arm,mhuv2-protocols = <1 1>, <1 1>;
+		#mbox-cells = <2>;
+		mbox-name = "arm-m55_hp-mhu1_rx";
 		status = "disabled";
 	};
 
-	mbox_m55_he_mhu0: mhu@1b040000 {
-			compatible = "arm,mhuv2","arm,primecell";
-			reg = <0x1b040000 0x1000>,
-			      <0x1b050000 0x1000>;
-			//clocks = <&syst_pclk>;
-			clocks = <&psclks ENSEMBLE_SYST_PCLK>;
-			clock-names = "syst_pclk";
-			interrupts = <0 14 4>;
-			interrupt-names = "mhu_rx";
-			#mbox-cells = <1>;
-			mbox-name = "arm-m55_he-mhu0";
-			status = "disabled";
+	mbox_m55_he_mhu0_tx: mhu@1b040000 {
+		compatible = "arm,mhuv2-tx","arm,primecell";
+		reg = <0x1b040000 0x1000>;
+		clocks = <&psclks ENSEMBLE_SYST_ACLK>;
+		clock-names = "apb_pclk";
+		interrupts = <0 13 4>;
+		interrupt-names = "mhu_tx";
+		arm,mhuv2-protocols = <1 1>, <1 1>;
+		#mbox-cells = <2>;
+		mbox-name = "arm-m55_he-mhu0_tx";
+		status = "disabled";
+	};
+	mbox_m55_he_mhu1_tx: mhu@1b060000 {
+		compatible = "arm,mhuv2-tx","arm,primecell";
+		reg = <0x1b060000 0x1000>;
+		clocks = <&psclks ENSEMBLE_SYST_ACLK>;
+		clock-names = "apb_pclk";
+		interrupts = <0 48 4>;
+		interrupt-names = "mhu_tx";
+		arm,mhuv2-protocols = <1 1>, <1 1>;
+		#mbox-cells = <2>;
+		mbox-name = "arm-m55_he-mhu1_tx";
+		status = "disabled";
+	};
+	mbox_m55_he_mhu0_rx: mhu@1b050000 {
+		compatible = "arm,mhuv2-rx","arm,primecell";
+		reg = <0x1b050000 0x1000>;
+		clocks = <&psclks ENSEMBLE_SYST_ACLK>;
+		clock-names = "apb_pclk";
+		interrupts = <0 14 4>;
+		interrupt-names = "mhu_rx";
+		arm,mhuv2-protocols = <1 1>, <1 1>;
+		#mbox-cells = <2>;
+		mbox-name = "arm-m55_he-mhu0_rx";
+		status = "disabled";
+	};
+	mbox_m55_he_mhu1_rx: mhu@1b070000 {
+		compatible = "arm,mhuv2-rx","arm,primecell";
+		reg = <0x1b070000 0x1000>;
+		clocks = <&psclks ENSEMBLE_SYST_ACLK>;
+		clock-names = "apb_pclk";
+		interrupts = <0 49 4>;
+		interrupt-names = "mhu_rx";
+		arm,mhuv2-protocols = <1 1>, <1 1>;
+		#mbox-cells = <2>;
+		mbox-name = "arm-m55_he-mhu1_rx";
+		status = "disabled";
+	};
+	mbox_se_mhu0_tx: mhu@1b800000 {
+		#mbox-cells = <2>;
+		compatible = "arm,mhuv2-tx","arm,primecell";
+		reg = <0x1b800000 0x1000>;
+		clocks = <&psclks ENSEMBLE_SYST_ACLK>;
+		clock-names = "apb_pclk";
+		interrupts = <0 9 4>;
+		interrupt-names = "mhu_tx";
+		arm,mhuv2-protocols = <1 1>, <1 1>;
+		mbox-name = "arm-se-mhu0_tx";
+		status = "disabled";
 	};
 
-	mbox_m55_he_mhu1: mhu@1b060000 {
-			compatible = "arm,mhuv2","arm,primecell";
-			reg = <0x1b060000 0x1000>,
-			      <0x1b070000 0x1000>;
-			clocks = <&psclks ENSEMBLE_SYST_PCLK>;
-			clock-names = "syst_pclk";
-			interrupts = <0 49 4>;
-			interrupt-names = "mhu_rx";
-			#mbox-cells = <1>;
-			mbox-name = "arm-m55_he-mhu1";
-			status = "disabled";
+	mbox_se_mhu1_tx: mhu@1b820000 {
+		compatible = "arm,mhuv2-tx","arm,primecell";
+		reg = <0x1b820000 0x1000>;
+		clocks = <&psclks ENSEMBLE_SYST_ACLK>;
+		clock-names = "apb_pclk";
+		interrupts = <0 44 4>;
+		interrupt-names = "mhu_tx";
+		arm,mhuv2-protocols = <1 1>, <1 1>;
+		#mbox-cells = <2>;
+		mbox-name = "arm-se-mhu1_tx";
+		status = "disabled";
 	};
-
-	mbox_se_mhu0: mhu@1b800000 {
-			compatible = "arm,mhuv2","arm,primecell";
-			reg = <0x1b800000 0x1000>,
-			      <0x1b810000 0x1000>;
-			clocks = <&psclks ENSEMBLE_SYST_PCLK>;
-			clock-names = "syst_pclk";
-			interrupts = <0 10 4>;
-			interrupt-names = "mhu_rx";
-			#mbox-cells = <1>;
-			mbox-name = "arm-se-mhu0";
-			status = "disabled";
+	mbox_se_mhu0_rx: mhu@1b810000 {
+		#mbox-cells = <2>;
+		compatible = "arm,mhuv2-rx","arm,primecell";
+		reg = <0x1b810000 0x1000>;
+		clocks = <&psclks ENSEMBLE_SYST_ACLK>;
+		clock-names = "apb_pclk";
+		interrupts = <0 10 4>;
+		interrupt-names = "mhu_rx";
+		arm,mhuv2-protocols = <1 1>, <1 1>;
+		mbox-name = "arm-se-mhu0_rx";
+		status = "disabled";
 	};
-
-	mbox_se_mhu1: mhu@1b820000 {
-			compatible = "arm,mhuv2","arm,primecell";
-			reg = <0x1b820000 0x1000>,
-			      <0x1b830000 0x1000>;
-			clocks = <&psclks ENSEMBLE_SYST_PCLK>;
-			clock-names = "syst_pclk";
-			interrupts = <0 45 4>;
-			interrupt-names = "mhu_rx";
-			#mbox-cells = <1>;
-			mbox-name = "arm-se-mhu1";
-			status = "disabled";
+	mbox_se_mhu1_rx: mhu@1b830000 {
+		compatible = "arm,mhuv2-rx","arm,primecell";
+		reg = <0x1b830000 0x1000>;
+		clocks = <&psclks ENSEMBLE_SYST_ACLK>;
+		clock-names = "apb_pclk";
+		interrupts = <0 45 4>;
+		interrupt-names = "mhu_rx";
+		arm,mhuv2-protocols = <1 1>, <1 1>;
+		#mbox-cells = <2>;
+		mbox-name = "arm-se-mhu1_rx";
+		status = "disabled";
 	};
 
 	client {
 		compatible = "arm,client";
-		mboxes = <&mbox_m55_hp_mhu0 0>,
-			 <&mbox_m55_hp_mhu1 0>,
-			 <&mbox_m55_he_mhu0 0>,
-			 <&mbox_m55_he_mhu1 0>,
-			 <&mbox_se_mhu0 0>,
-			 <&mbox_se_mhu1 0>;
-		mbox-names = "m55_hp_mhu0", "m55_hp_mhu1", "m55_he_mhu0",
-			 "m55_he_mhu1", "se_mhu0", "se_mhu1";
+		mbox-names = "txdb0", "txdb1",
+			     "rxdb0", "rxdb1",
+			     "txdb2", "txdb3",
+			     "rxdb2", "rxdb2",
+			     "txdb4", "txdb5",
+			     "rxdb4", "rxdb5";
+		mboxes =  <&mbox_m55_hp_mhu0_tx 0 0>,
+			  <&mbox_m55_hp_mhu1_tx 0 0>,
+			  <&mbox_m55_hp_mhu0_rx 0 0>,
+			  <&mbox_m55_hp_mhu1_rx 0 0>,
+			  <&mbox_m55_he_mhu0_tx 0 0>,
+			  <&mbox_m55_he_mhu1_tx 0 0>,
+			  <&mbox_m55_he_mhu0_rx 0 0>,
+			  <&mbox_m55_he_mhu1_rx 0 0>,
+			  <&mbox_se_mhu0_tx 0 0>,
+			  <&mbox_se_mhu1_tx 0 0>,
+			  <&mbox_se_mhu0_rx 0 0>,
+			  <&mbox_se_mhu1_rx 0 0>;
 	};
 
 	rtc: rtc@42000000 {

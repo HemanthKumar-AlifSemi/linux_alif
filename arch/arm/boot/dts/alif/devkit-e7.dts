@@ -263,6 +263,54 @@
 	status = HWSEM15_STATUS;
 };
 
+&mbox_m55_hp_mhu0_tx {
+	status = M55_HP_MHU0_TX_STATUS;
+};
+
+&mbox_m55_hp_mhu1_tx {
+	status = M55_HP_MHU1_TX_STATUS;
+};
+
+&mbox_m55_hp_mhu0_rx {
+	status = M55_HP_MHU0_RX_STATUS;
+};
+
+&mbox_m55_hp_mhu1_rx {
+	status = M55_HP_MHU1_RX_STATUS;
+};
+
+&mbox_m55_he_mhu0_tx {
+	status = M55_HE_MHU0_TX_STATUS;
+};
+
+&mbox_m55_he_mhu1_tx {
+	status = M55_HE_MHU1_TX_STATUS;
+};
+
+&mbox_m55_he_mhu0_rx {
+	status = M55_HE_MHU0_RX_STATUS;
+};
+
+&mbox_m55_he_mhu1_rx {
+	status = M55_HE_MHU1_RX_STATUS;
+};
+
+&mbox_se_mhu0_tx {
+	status = SE_MHU0_TX_STATUS;
+};
+
+&mbox_se_mhu1_tx {
+	status = SE_MHU1_TX_STATUS;
+};
+
+&mbox_se_mhu0_rx {
+	status = SE_MHU0_RX_STATUS;
+};
+
+&mbox_se_mhu1_rx {
+	status = SE_MHU1_RX_STATUS;
+};
+
 &sdmmc {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_sdhci>;
