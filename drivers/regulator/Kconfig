@@ -400,6 +400,16 @@ config REGULATOR_DB8500_PRCMU
 	  This driver supports the voltage domain regulators controlled by the
 	  DB8500 PRCMU
 
+config REGULATOR_ENSEMBLE
+	bool "Alif Ensemble SoC Regulators"
+	select REGMAP_MMIO
+	help
+	  This driver provides support for the on-chip voltage regulators found
+	  on the Alif Ensemble System-on-Chip (SoC). It currently manages the
+	  FlexIO voltage levels, which are always enabled during operation.
+	  The FlexIO regulator supports configurable output voltages of
+	  1.8V and 3.3V.
+
 config REGULATOR_FAN53555
 	tristate "Fairchild FAN53555 Regulator"
 	depends on I2C
