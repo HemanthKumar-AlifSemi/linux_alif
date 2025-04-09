@@ -100,6 +100,18 @@
 		};
 	};
 
+	ensemble_reg: regulator@1a609000 {
+		compatible = "alif,ensemble-regulator";
+		reg = <0x1a609000 0x4>;
+		flexio_reg: ensemble_flexio {
+			regulator-name = "ensemble_flexio";
+			regulator-min-microvolt = <1800000>;
+			regulator-max-microvolt = <3300000>;
+			regulator-initial-mode = <0x4>;
+			regulator-always-on;
+		};
+	};
+
 	watchdog@1a300000 {
 		compatible = "arm,sbsa-gwdt";
 		reg = <0x1a300000 0x1000>,
