@@ -2032,6 +2032,7 @@ F:	Documentation/devicetree/bindings/crypto/alif,alif-crccode.yaml
 F:	Documentation/devicetree/bindings/hwlock/alif,hwsem.yaml
 F:	Documentation/devicetree/bindings/iio/dac/alif,ensemble-dac.yaml
 F:	Documentation/devicetree/bindings/regulator/alif,ensemble-regulator.yaml
+F:	Documentation/devicetree/bindings/rpmsg/alif,mhu-client.yaml
 F:	Documentation/devicetree/bindings/rtc/snps,designware-rtc.yaml
 F:	Documentation/devicetree/bindings/sound/alif,alif-pcm-card.yaml
 F:	Documentation/devicetree/bindings/sound/alif,alif-pcm.yaml
