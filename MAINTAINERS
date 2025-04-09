@@ -2027,9 +2027,11 @@ F:	arch/arm64/boot/dts/airoha/
 
 ARM/ALIF SEMICONDUCTOR MACHINE SUPPORT
 M:	Hemanth Kumar <hemanth@alifsemi.com>
+M:	Aravind Krishnan M <aravind.krishnan@alifsemi.com>
 F:	Documentation/devicetree/bindings/crypto/alif,alif-crccode.yaml
 F:	Documentation/devicetree/bindings/hwlock/alif,hwsem.yaml
 F:	Documentation/devicetree/bindings/iio/dac/alif,ensemble-dac.yaml
+F:	Documentation/devicetree/bindings/regulator/alif,ensemble-regulator.yaml
 F:	Documentation/devicetree/bindings/rtc/snps,designware-rtc.yaml
 F:	Documentation/devicetree/bindings/sound/alif,alif-pcm-card.yaml
 F:	Documentation/devicetree/bindings/sound/alif,alif-pcm.yaml
@@ -2038,6 +2040,7 @@ F:	Documentation/devicetree/bindings/usb/alif,ensemble-usb3.yaml
 F:	drivers/crypto/alif-crc.c
 F:	drivers/hwspinlock/alif_hwsem.c
 F:	drivers/iio/dac/ensemble-dac.c
+F:	drivers/regulator/ensemble-regulator.c
 F:	drivers/rtc/rtc-dw-apb.c
 F:	drivers/usb/dwc3/dwc3-ensemble.c
 F:	sound/soc/alif/*

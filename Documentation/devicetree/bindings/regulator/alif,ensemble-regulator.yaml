@@ -1,0 +1,74 @@
+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+%YAML 1.2
+---
+$id: http://devicetree.org/schemas/regulator/alif,ensemble-regulator.yaml#
+$schema: http://devicetree.org/meta-schemas/core.yaml#
+
+title: Alif Semiconductor Ensemble soc on-chip Regulator
+
+maintainers:
+  - Aravind Krishnan M <aravind.krishnan@alifsemi.com>
+
+description: |
+  This binding describes the voltage regulator present on the
+  Ensemble SoC by Alif Semiconductor.
+  The regulator supports two voltage levels (3.3V and 1.8V) and can be controlled
+  via a single register bit.
+
+properties:
+  compatible:
+    const: alif,ensemble-regulator
+    description: Identifies the regulator as an Alif Semiconductor Ensemble regulator.
+
+  reg:
+    maxItems: 1
+    description: Base address and size of the register region used to control the regulator.
+
+  regulator-name:
+    description: Name of the regulator. This is optional and defaults to "ensemble_flexio".
+
+  regulator-min-microvolt:
+    description: Minimum voltage supported by the regulator in microvolts.
+    default: 1800000
+
+  regulator-max-microvolt:
+    description: Maximum voltage supported by the regulator in microvolts.
+    default: 3300000
+
+  regulator-initial-mode:
+    description: |
+      This determines the initial voltage setting of the regulator.
+      "ensemble_flexio" regulator supports two modes.
+      REGULATOR_MODE_NORMAL
+      REGULATOR_MODE_IDLE.
+      3.3v and 1.8v respectively.
+
+  regulator-always-on:
+    type: boolean
+    description: Indicates whether the regulator should always remain on.
+
+required:
+  - compatible
+  - reg
+  - regulator-initial-mode
+  - regulator-always-on
+
+additionalProperties: false
+
+examples:
+
+  - |
+    # Example device tree node for the Ensemble regulator
+    ensemble_reg: regulator@1a609000 {
+        compatible = "alif,ensemble-regulator";
+        reg = <0x1a609000 0x4>;
+        flexio_reg: ensemble_flexio {
+                regulator-name = "ensemble_flexio";
+                regulator-min-microvolt = <1800000>;
+                regulator-max-microvolt = <3300000>;
+                regulator-initial-mode = <0x4>; /*REGULATOR_MODE_IDLE*/
+                regulator-always-on;
+        };
+    };
+
+...
