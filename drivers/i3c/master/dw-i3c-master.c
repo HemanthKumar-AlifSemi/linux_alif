@@ -220,6 +220,9 @@
 
 #define XFER_TIMEOUT (msecs_to_jiffies(1000))
 #define RPM_AUTOSUSPEND_TIMEOUT 1000 /* ms */
+
+#define I3C_OD_SLOW_SPEED_THIGH_MIN_NS	200
+
 struct dw_i3c_cmd {
 	u32 cmd_lo;
 	u32 cmd_hi;
@@ -554,6 +557,90 @@ static void dw_i3c_master_set_intr_regs(struct dw_i3c_master *master)
 	writel(master->sir_rej_mask, master->regs + IBI_SIR_REQ_REJECT);
 
 	writel(IBI_REQ_REJECT_ALL, master->regs + IBI_MR_REQ_REJECT);
+}
+
+static int dw_i3c_master_set_speed(struct i3c_master_controller *m,
+				     enum i3c_open_drain_speed speed)
+{
+	struct dw_i3c_master *master = to_dw_i3c_master(m);
+	u32 scl_timing;
+	int ret;
+	u8 hcnt, lcnt;
+	unsigned long core_rate, core_period;
+
+	/* Ensure the device is powered on before accessing registers */
+	ret = pm_runtime_resume_and_get(master->dev);
+	if (ret < 0) {
+		dev_err(master->dev,
+			"<%s> cannot resume i3c bus master, err: %d\n",
+			__func__, ret);
+		return ret;
+	}
+
+	/* Handle different speed modes */
+	switch (speed) {
+	case I3C_OPEN_DRAIN_SLOW_SPEED:
+		scl_timing = master->i3c_od_timing;
+		hcnt = scl_timing & GENMASK(23, 16);	/* Extract HCNT */
+		lcnt = scl_timing & GENMASK(7, 0);	/* Extract LCNT */
+
+		/* Calculate timing parameters based on the core clock rate */
+		core_rate = clk_get_rate(master->core_clk);
+		core_period = DIV_ROUND_UP(1000000000, core_rate);
+
+		/* Ensure HCNT meets the minimum high-time requirement */
+		hcnt = max_t(u8,
+		     DIV_ROUND_UP(I3C_OD_SLOW_SPEED_THIGH_MIN_NS, core_period),
+		     hcnt);
+
+		/* Calculate LCNT based on the desired SCL rate */
+		lcnt = DIV_ROUND_UP(core_rate, master->base.bus.scl_rate.i3c) - hcnt;
+
+		/* Enforce minimum LCNT value */
+		if (lcnt < SCL_I3C_TIMING_CNT_MIN)
+			lcnt = SCL_I3C_TIMING_CNT_MIN;
+
+		/* Update the timing registers */
+		scl_timing = SCL_I3C_TIMING_HCNT(hcnt) | SCL_I3C_TIMING_LCNT(lcnt);
+		writel(scl_timing, master->regs + SCL_I3C_PP_TIMING);
+		writel(scl_timing, master->regs + SCL_I3C_OD_TIMING);
+
+		/* Update BUS_FREE_TIMING for pure I3C mode */
+		if (master->base.bus.mode == I3C_BUS_MODE_PURE)
+			writel(BUS_I3C_MST_FREE(lcnt), master->regs + BUS_FREE_TIMING);
+
+		dev_dbg(master->dev,
+			"Set slow speed: HCNT=%u, LCNT=%u, core_rate=%lu Hz\n",
+			hcnt, lcnt, core_rate);
+
+		break;
+	case I3C_OPEN_DRAIN_NORMAL_SPEED:
+		/* Use precomputed timing values for normal speed */
+		scl_timing = master->i3c_pp_timing;
+		writel(scl_timing, master->regs + SCL_I3C_PP_TIMING);
+		scl_timing = master->i3c_od_timing;
+		writel(scl_timing, master->regs + SCL_I3C_OD_TIMING);
+
+		/* Update BUS_FREE_TIMING for pure I3C mode */
+		if (master->base.bus.mode == I3C_BUS_MODE_PURE)
+			writel(master->bus_free_timing, master->regs + BUS_FREE_TIMING);
+
+		dev_dbg(master->dev, "Set normal speed\n");
+		break;
+	default:
+		/* Handle invalid speed modes */
+		dev_err(master->dev, "Invalid speed mode: %d\n", speed);
+		ret = -EINVAL;
+		goto rpm_out;
+
+	}
+
+rpm_out:
+	/* Mark the device as idle and release runtime PM reference */
+	pm_runtime_mark_last_busy(master->dev);
+	pm_runtime_put_autosuspend(master->dev);
+
+	return ret;
 }
 
 static int dw_i3c_clk_cfg(struct dw_i3c_master *master)
@@ -1516,6 +1603,7 @@ static const struct i3c_master_controller_ops dw_mipi_i3c_ops = {
 	.recycle_ibi_slot = dw_i3c_master_recycle_ibi_slot,
 	.enable_hotjoin = dw_i3c_master_enable_hotjoin,
 	.disable_hotjoin = dw_i3c_master_disable_hotjoin,
+	.set_speed = dw_i3c_master_set_speed,
 };
 
 /* default platform ops implementations */
