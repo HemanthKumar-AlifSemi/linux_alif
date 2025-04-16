@@ -46,6 +46,15 @@ config 104_QUAD_8
 	  array module parameter. The interrupt line numbers for the devices may
 	  be configured via the irq array module parameter.
 
+config ALIF_UTIMER_CNT
+	bool "Alif UTIMER counter driver"
+	help
+	  Enable the Alif UTIMER counter driver for high-resolution timing and pulse
+	  counting. The 32-bit UTIMER serves as a signal generator, pulse counter,
+	  and Quadrature Encoder Counter (QEC).
+	  It includes up to 16 modules, supporting PWM outputs, quadrature encoding,
+	  and multiple synchronization options.
+
 config FTM_QUADDEC
 	tristate "Flex Timer Module Quadrature decoder driver"
 	depends on SOC_LS1021A || COMPILE_TEST
