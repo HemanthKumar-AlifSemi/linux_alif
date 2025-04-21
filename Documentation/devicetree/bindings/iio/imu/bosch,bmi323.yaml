@@ -75,3 +75,15 @@ examples:
             interrupt-names = "INT1";
         };
     };
+    // Example for I3C
+    i3c {
+        #address-cells = <3>;
+        #size-cells = <0>;
+
+        bmi323_i3c@69 {
+                   reg = <0x69 0x03b8 0x0>;
+                   vdd-supply = <&reg_1p8v>;
+                   vdd_io-supply = <&reg_1p8v>;
+                   assigned-address = <0xa>;
+       	};
+    };
