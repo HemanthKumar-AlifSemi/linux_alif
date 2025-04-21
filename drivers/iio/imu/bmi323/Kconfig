@@ -31,3 +31,15 @@ config BMI323_SPI
 
 	  This driver can also be built as a module. If so, the module will be
 	  called bmi323_spi.
+
+config BMI323_I3C
+       tristate "Bosch BMI323 I3C driver"
+       depends on I3C
+       select BMI323
+       select REGMAP_I3C
+       help
+         Enable support for the Bosch BMI323 6-Axis IMU connected to I3C
+         interface.
+
+         This driver can also be built as a module. If so, the module will be
+         called bmi323_i3c.

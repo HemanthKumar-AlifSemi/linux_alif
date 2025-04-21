@@ -13,7 +13,9 @@
 #include <linux/units.h>
 
 #define BMI323_I2C_DUMMY			2
+#define BMI323_I3C_DUMMY			2
 #define BMI323_SPI_DUMMY			1
+#define BMI323_MAX_READ_SIZE			32
 
 /* Register map */
 

@@ -2028,12 +2028,17 @@ static int bmi323_init(struct bmi323_data *data)
 	 * Perform soft reset to make sure the device is in a known state after
 	 * start up. A delay of 1.5 ms is required after reset.
 	 * See datasheet section 5.17 "Soft Reset".
+	 * Soft Reset is not required for I3C communication as on Soft Reset
+	 * the sensor will switch back to default i2c mode and further I3C
+	 * messages will fail.
 	 */
+#if !defined CONFIG_BMI323_I3C
 	ret = regmap_write(data->regmap, BMI323_CMD_REG, BMI323_RST_VAL);
 	if (ret)
 		return ret;
 
 	usleep_range(1500, 2000);
+#endif
 
 	/*
 	 * Dummy read is required to enable SPI interface after reset.
