@@ -14,35 +14,33 @@
 		serial0 = &uart4;
 	};
 
-	regulators {
-		reg_3p3v: reg3p3v {
-			compatible = "regulator-fixed";
-			regulator-name = "fixed-3.3V";
-			regulator-min-microvolt = <3300000>;
-			regulator-max-microvolt = <3300000>;
-			regulator-always-on;
-		};
-		reg_2p7v: reg27 {
-			compatible = "regulator-fixed";
-			regulator-name = "fixed-2.7V";
-			regulator-min-microvolt = <2700000>;
-			regulator-max-microvolt = <2700000>;
-			regulator-always-on;
-		};
-		reg_1p8v: reg18 {
-			compatible = "regulator-fixed";
-			regulator-name = "fixed-1.8V";
-			regulator-min-microvolt = <1800000>;
-			regulator-max-microvolt = <1800000>;
-			regulator-always-on;
-		};
-		reg_1p2v: reg12 {
-			compatible = "regulator-fixed";
-			regulator-name = "fixed-1.2V";
-			regulator-min-microvolt = <1200000>;
-			regulator-max-microvolt = <1200000>;
-			regulator-always-on;
-		};
+	reg_3p3v: reg3p3v {
+		compatible = "regulator-fixed";
+		regulator-name = "fixed-3.3V";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		regulator-always-on;
+	};
+	reg_2p7v: reg27 {
+		compatible = "regulator-fixed";
+		regulator-name = "fixed-2.7V";
+		regulator-min-microvolt = <2700000>;
+		regulator-max-microvolt = <2700000>;
+		regulator-always-on;
+	};
+	reg_1p8v: reg18 {
+		compatible = "regulator-fixed";
+		regulator-name = "fixed-1.8V";
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <1800000>;
+		regulator-always-on;
+	};
+	reg_1p2v: reg12 {
+		compatible = "regulator-fixed";
+		regulator-name = "fixed-1.2V";
+		regulator-min-microvolt = <1200000>;
+		regulator-max-microvolt = <1200000>;
+		regulator-always-on;
 	};
 
 	chosen {
@@ -317,6 +315,18 @@
 	status = SDHCI_STATUS;
 };
 
+&i3c0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_i3c0>;
+	status = I3C0_STATUS;
+	bmi323_i3c@69 {
+		reg = <0x69 0x03b8 0x0>;
+		vdd-supply = <&reg_1p8v>;
+		vddio-supply = <&reg_1p8v>;
+		assigned-address = <0xa>;
+		status = "okay";
+	};
+};
 &pinmux {
 	/* syntax:
 	pinmux = < PIN_NAME	<8bit pad-config value> >
@@ -407,8 +417,8 @@
 
 	pinctrl_i3c0: i3c0grp {
 		pinmux = <
-			PIN_P7_6__I3C_SDA_D	0x0
-			PIN_P7_7__I3C_SCL_D	0x0
+			PIN_P7_6__I3C_SDA_D	0x2b
+			PIN_P7_7__I3C_SCL_D	0x2b
 		>;
 	};
 

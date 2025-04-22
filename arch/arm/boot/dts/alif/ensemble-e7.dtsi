@@ -1018,17 +1018,6 @@
 			status = "disabled";
 		};
 
-		i3c0: i3c@49018000 {
-			compatible = "snps,dw-i3c-master-1.00a";
-			reg = <0x49018000 0x1000>;
-			interrupt-parent = <&gic>;
-			interrupts = <GIC_SPI 125 IRQ_TYPE_LEVEL_HIGH>;
-			clocks = <&psclks ENSEMBLE_I3C_CLK>;
-			i2c-scl-hz = <100000>;
-			status = "disabled";
-		};
-
-
 		i2s0: i2s0@49014000 {
 			compatible = "snps,designware-i2s";
 			reg = <0x49014000 0x1000>;
@@ -1344,6 +1333,27 @@
 			clock-names = "hfxo", "pll_clk1", "pll_clk3";
 		};
 
+	};
+	apb_d: apb@49030000 {
+		compatible = "simple-bus";
+		#address-cells = <1>;
+		#size-cells = <1>;
+		reg = <0x49030000 0x00010000>;
+		ranges = <>;
+
+		i3c0: i3c@49034000 {
+			compatible = "snps,dw-i3c-master-1.00a";
+			reg = <0x49034000 0x1000>;
+			#address-cells = <3>;
+			#size-cells = <0>;
+			interrupt-parent = <&gic>;
+			interrupts = <GIC_SPI 125 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&psclks ENSEMBLE_I3C_CLK>;
+			clock-names = "core" ;
+			i2c-scl-hz = <100000>;
+/*			i3c-scl-hz = <2000000>;*/
+			status = "disabled";
+		};
 	};
 	apb_e: apb@49040000 {
 		compatible = "simple-bus";
