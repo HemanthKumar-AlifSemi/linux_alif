@@ -1,0 +1,78 @@
+# SPDX-License-Identifier: (GPL-2.0 OR BSD-2-Clause)
+%YAML 1.2
+---
+$id: http://devicetree.org/schemas/counter/alif,alif-utimer.yaml#
+$schema: http://devicetree.org/meta-schemas/core.yaml#
+
+title: Alif Microcontroller UTIMER (Unified Timer) Module
+
+maintainers:
+  - Hemanth Kumar <hemanth@alifsemi.com>
+
+description: |
+  The Alif UTIMER is a unified timer/counter module with multiple channels,
+  each supporting independent start/stop/clear controls and interrupt generation.
+
+properties:
+  compatible:
+    const: alif,alif-utimer
+
+  reg:
+    maxItems: 1
+    description: |
+      Physical base address and size of the UTIMER register set.
+
+  interrupts:
+    minItems: 1
+    maxItems: 64
+    description: |
+      List of interrupts, one per timer channel, in ascending order (e.g.,
+      Channel 0 = interrupts[0], Channel 1 = interrupts[1], etc.).
+
+  clocks:
+    maxItems: 1
+    description: |
+      AXI clock phandle for the timer module.
+
+  clock-names:
+    const: axi_clk
+
+  "#pwm-cells":
+    const: 0
+    description: |
+      If the timer supports PWM mode, this property may be present.
+
+required:
+  - compatible
+  - reg
+  - interrupts
+  - interrupt-parent
+  - clocks
+  - clock-names
+
+additionalProperties: false
+
+examples:
+  - |
+    #include <dt-bindings/interrupt-controller/arm-gic.h>
+    #include <dt-bindings/clock/alif-clock.h>
+
+    ahb-bus@48100000 {
+      compatible = "simple-bus";
+      #address-cells = <1>;
+      #size-cells = <1>;
+      ranges = <0x48000000 0x48100000 0x100000>;
+
+      utimer: timer@48000000 {
+        compatible = "alif,alif-utimer";
+        reg = <0x48000000 0x100000>;
+        interrupt-parent = <&gic>;
+        interrupts = <GIC_SPI 366 IRQ_TYPE_EDGE_RISING>,
+                     <GIC_SPI 367 IRQ_TYPE_EDGE_RISING>,
+                     /* ... (all 64 interrupts) ... */
+                     <GIC_SPI 461 IRQ_TYPE_EDGE_RISING>;
+        clocks = <&psclks ENSEMBLE_SYST_ACLK>;
+        clock-names = "axi_clk";
+        status = "okay";
+      };
+    };
