@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: (GPL-2.0+)
 /*
- * Copyright (C) 2024 Alif Semiconductor
- */
+* Copyright (C) 2024 Alif Semiconductor
+*/
 /dts-v1/;
 
 #include "ensemble-e7.dtsi"
@@ -187,6 +187,30 @@
 		reg = <0>;
 	};
 
+};
+
+&cmp0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_cmp0>;
+	status = CMP0_STATUS;
+};
+
+&cmp1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_cmp1>;
+	status = CMP1_STATUS;
+};
+
+&cmp2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_cmp2>;
+	status = CMP2_STATUS;
+};
+
+&cmp3 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_cmp3>;
+	status = CMP3_STATUS;
 };
 
 &dac0 {
@@ -547,6 +571,35 @@
 			PIN_P12_6__SPI3_SCLK_A	0x0
 			PIN_P12_4__SPI3_MISO_A	0x23
 			PIN_P12_5__SPI3_MOSI_A	0x0
+		>;
+	};
+	pinctrl_cmp0: cmp0grp {
+		pinmux = <
+			PIN_P0_0__ANA_S0        0x23
+			PIN_P0_6__ANA_S6        0x23
+			PIN_P14_7__CMP0_OUT_B   0x1
+		>;
+	};
+	pinctrl_cmp1: cmp1grp {
+		pinmux = <
+			PIN_P0_1__ANA_S1        0x23
+			PIN_P0_5__ANA_S5        0x23
+			PIN_P14_6__CMP1_OUT_B   0x1
+		>;
+	};
+	pinctrl_cmp2: cmp2grp {
+		pinmux = <
+			PIN_P0_2__ANA_S2        0x23
+			PIN_P1_2__ANA_S10       0x23
+			PIN_P14_5__CMP2_OUT_B   0x1
+		>;
+	};
+	pinctrl_cmp3: cmp3grp {
+		pinmux = <
+		PIN_P0_3__ANA_S3        0x23
+		PIN_P1_3__ANA_S11       0x23
+		PIN_P1_7__ANA_S15       0x23
+		PIN_P14_4__CMP3_OUT_B   0x1
 		>;
 	};
 	pinctrl_sdhci: sdhci0grp {

@@ -958,7 +958,7 @@
 			#size-cells = <0>;
 			compatible = "snps,dw-apb-gpio";
 			reg = <0x4900e000 0x1000>;
-			status = "disabled";
+			status = "okay";
 
 			port15: gpio-port@0 {
 				compatible = "snps,dw-apb-gpio-port";
@@ -1412,6 +1412,55 @@
 				     <0 154 IRQ_TYPE_LEVEL_HIGH>,
 				     <0 155 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&psclks ENSEMBLE_ADC122_CLK>;
+			status = "disabled";
+		};
+
+		cmp0: cmp0@49023000 {
+			compatible = "alif,cmp-module";
+			reg = <0x49023000 0x1000>;
+			reg-names = "cmp_reg";
+			interrupt-parent = <&gic>;
+			interrupts = <0 156 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&psclks ENSEMBLE_CMP0_CLK>;
+			cmp-gpios = <&port15 7 GPIO_ACTIVE_HIGH>;
+			led-gpios = <&port13 3 GPIO_ACTIVE_HIGH>;
+			instance = <0>;
+			status = "disabled";
+		};
+
+		cmp1: cmp1@49024000 {
+			compatible = "alif,cmp-module";
+			reg = <0x49024000 0x1000>;
+			reg-names = "cmp_reg";
+			interrupt-parent = <&gic>;
+			interrupts = <0 157 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&psclks ENSEMBLE_CMP1_CLK>;
+			cmp-gpios = <&port15 6 GPIO_ACTIVE_HIGH>;
+			instance = <1>;
+			status = "disabled";
+		};
+
+		cmp2: cmp2@49025000 {
+			compatible = "alif,cmp-module";
+			reg = <0x49025000 0x1000>;
+			reg-names = "cmp_reg";
+			interrupt-parent = <&gic>;
+			interrupts = <0 158 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&psclks ENSEMBLE_CMP2_CLK>;
+			cmp-gpios = <&port15 5 GPIO_ACTIVE_HIGH>;
+			instance = <2>;
+			status = "disabled";
+		};
+
+		cmp3: cmp3@49026000 {
+			compatible = "alif,cmp-module";
+			reg = <0x49026000 0x1000>;
+			reg-names = "cmp_reg";
+			interrupt-parent = <&gic>;
+			interrupts = <0 159 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&psclks ENSEMBLE_CMP3_CLK>;
+			cmp-gpios = <&port15 4 GPIO_ACTIVE_HIGH>;
+			instance = <3>;
 			status = "disabled";
 		};
 
