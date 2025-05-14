@@ -36,6 +36,7 @@ static const char *const audio_clk_src_sels[] = { "76m8_clk", "audio_clk", };
 static const char *const pixclk_sels[] = {"syst_aclk", "pll_clk3", };
 static const char *const eth_clk_sels[] = {"eth_refclk", "50m_clk"};
 static const char *const adc_clk_sels[] = {"syst_pclk", "160m_clk"};
+static const char *const cmp_clk_sels[] = {"syst_pclk", "160m_clk"};
 static const char *const sd_clk_sels[] = {"syst_hclk", "100m_clk"};
 struct clk_hw *__ensemble_clk_hw_composite(const char *name,
 					const char * const *parent_names,
@@ -276,15 +277,6 @@ static void __init ensemble_clocks_init(struct device_node *ccps_node)
 				"syst_pclk", base + 0x34, 4);
 	hws[ENSEMBLE_DAC120_CLK] = ensemble_clk_hw_gate("dac120_clk",
 				"syst_pclk", base + 0x34, 0);
-
-	hws[ENSEMBLE_CMP3_CLK] = ensemble_clk_hw_gate("cmp3_clk",
-				"syst_pclk", base + 0x38, 12);
-	hws[ENSEMBLE_CMP2_CLK] = ensemble_clk_hw_gate("cmp2_clk",
-				"syst_pclk", base + 0x38, 8);
-	hws[ENSEMBLE_CMP1_CLK] = ensemble_clk_hw_gate("cmp1_clk",
-				"syst_pclk", base + 0x38, 4);
-	hws[ENSEMBLE_CMP0_CLK] = ensemble_clk_hw_gate("cmp0_clk",
-				"syst_pclk", base + 0x38, 0);
 	hws[ENSEMBLE_DWC_USB_CLK] = ensemble_clk_hw_gate("dwc_clk",
 				"syst_pclk", ccpmst_base + 0xC, 20);
 
@@ -334,6 +326,24 @@ static void __init ensemble_clocks_init(struct device_node *ccps_node)
 	clk_set_parent(hws[ENSEMBLE_ADC121_CLK]->clk, hws[ENSEMBLE_160M_CLK]->clk);
 	clk_set_parent(hws[ENSEMBLE_ADC122_CLK]->clk, hws[ENSEMBLE_160M_CLK]->clk);
 	clk_set_parent(hws[ENSEMBLE_ADC24_CLK]->clk, hws[ENSEMBLE_160M_CLK]->clk);
+
+	hws[ENSEMBLE_CMP0_CLK] = ensemble_clk_hw_mux("cmp0_clk",
+					base + 0x38, 0, 1, cmp_clk_sels,
+					ARRAY_SIZE(cmp_clk_sels));
+	hws[ENSEMBLE_CMP1_CLK] = ensemble_clk_hw_mux("cmp1_clk",
+					base + 0x38, 4, 1, cmp_clk_sels,
+					ARRAY_SIZE(cmp_clk_sels));
+	hws[ENSEMBLE_CMP2_CLK] = ensemble_clk_hw_mux("cmp2_clk",
+					base + 0x38, 8, 1, cmp_clk_sels,
+					ARRAY_SIZE(cmp_clk_sels));
+	hws[ENSEMBLE_CMP3_CLK] = ensemble_clk_hw_mux("cmp3_clk",
+					base + 0x38, 12, 1, cmp_clk_sels,
+					ARRAY_SIZE(cmp_clk_sels));
+
+	clk_set_parent(hws[ENSEMBLE_CMP0_CLK]->clk, hws[ENSEMBLE_160M_CLK]->clk);
+	clk_set_parent(hws[ENSEMBLE_CMP1_CLK]->clk, hws[ENSEMBLE_160M_CLK]->clk);
+	clk_set_parent(hws[ENSEMBLE_CMP2_CLK]->clk, hws[ENSEMBLE_160M_CLK]->clk);
+	clk_set_parent(hws[ENSEMBLE_CMP3_CLK]->clk, hws[ENSEMBLE_160M_CLK]->clk);
 
 	hws[ENSEMBLE_SPI0_SS_IN_SEL_MST_CLK] = ensemble_clk_hw_gate("spi0_ssi_in_sel_clk",
 				"syst_hclk", base + 0x28, 0);

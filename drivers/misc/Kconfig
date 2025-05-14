@@ -610,6 +610,18 @@ config MARVELL_CN10K_DPI
 	  To compile this driver as a module, choose M here: the module
 	  will be called mrvl_cn10k_dpi.
 
+config ALIF_COMPARATOR
+	tristate "Alif High-Speed Comparator (CMP) module"
+	help
+	  This option enables support for the comparator module found in Alif
+	  Semiconductor's microcontroller devices. The comparator is used to
+	  compare two analog voltage(+ve and -ve) signals and determine which
+	  one is greater, enabling various threshold detection applications.
+
+	  Say Y here if you want to build the Alif Comparator driver directly into
+	  the kernel, or M if you want it built as a loadable module. If unsure,
+	  say N.
+
 source "drivers/misc/c2port/Kconfig"
 source "drivers/misc/eeprom/Kconfig"
 source "drivers/misc/cb710/Kconfig"
