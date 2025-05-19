@@ -673,22 +673,18 @@ static struct counter_synapse utimer_count_synapses[][13] = {
 }
 
 static struct counter_count utimer_counts[] = {
-	UTIMER_COUNT(0, "Channel 1"),
-	UTIMER_COUNT(1, "Channel 2"),
-	UTIMER_COUNT(2, "Channel 3"),
-	UTIMER_COUNT(3, "Channel 4"),
-	UTIMER_COUNT(4, "Channel 5"),
-	UTIMER_COUNT(5, "Channel 6"),
-	UTIMER_COUNT(6, "Channel 7"),
-	UTIMER_COUNT(7, "Channel 8"),
-	UTIMER_COUNT(8, "Channel 9"),
-	UTIMER_COUNT(9, "Channel 10"),
-	UTIMER_COUNT(10, "Channel 11"),
-	UTIMER_COUNT(11, "Channel 12"),
-	UTIMER_COUNT(12, "Channel 13"),
-	UTIMER_COUNT(13, "Channel 14"),
-	UTIMER_COUNT(14, "Channel 15"),
-	UTIMER_COUNT(15, "Channel 16"),
+	UTIMER_COUNT(0, "Channel 0"),
+	UTIMER_COUNT(1, "Channel 1"),
+	UTIMER_COUNT(2, "Channel 2"),
+	UTIMER_COUNT(3, "Channel 3"),
+	UTIMER_COUNT(4, "Channel 4"),
+	UTIMER_COUNT(5, "Channel 5"),
+	UTIMER_COUNT(6, "Channel 6"),
+	UTIMER_COUNT(7, "Channel 7"),
+	UTIMER_COUNT(8, "Channel 8"),
+	UTIMER_COUNT(9, "Channel 9"),
+	UTIMER_COUNT(10, "Channel 10"),
+	UTIMER_COUNT(11, "Channel 11"),
 };
 
 static void utimer_channel_init(struct utimer_cnt *ut, int ch)
