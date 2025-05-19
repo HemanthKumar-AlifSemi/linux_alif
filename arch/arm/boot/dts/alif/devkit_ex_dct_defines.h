@@ -66,17 +66,6 @@
 
 /* UTIMER defines */
 #define UTIMER0_STATUS "disabled"
-#define UTIMER1_STATUS "disabled"
-#define UTIMER2_STATUS "disabled"
-#define UTIMER3_STATUS "disabled"
-#define UTIMER4_STATUS "disabled"
-#define UTIMER5_STATUS "disabled"
-#define UTIMER6_STATUS "disabled"
-#define UTIMER7_STATUS "disabled"
-#define UTIMER8_STATUS "disabled"
-#define UTIMER9_STATUS "disabled"
-#define UTIMER10_STATUS "disabled"
-#define UTIMER11_STATUS "disabled"
 
 /* DSI defines */
 #define DSI_STATUS "disabled"

@@ -71,6 +71,10 @@
 	};
 };
 
+&utimer {
+	status = UTIMER0_STATUS;
+};
+
 &hsusb {
 	status = HSUSB_STATUS;
 	usbdual_hs: usb-dual@48200000 {
