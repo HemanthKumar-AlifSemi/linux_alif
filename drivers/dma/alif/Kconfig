@@ -1,0 +1,13 @@
+
+config ALIF_EVENT_ROUTER
+    tristate "ALIF Event Router DMA Controller"
+    depends on ARCH_ENSEMBLE && DMA_ENGINE
+    default y if ARCH_ENSEMBLE
+    help
+      This enables support for the ALIF Event Router DMA controller which acts
+      as a 4:1 multiplexer between peripherals and the DMA controller.
+
+      Each of the 32 DMA channels can be connected to one of 4 peripherals
+      controlled by this event router.
+
+      Say Y here if you are using an ALIF SoC with this hardware block.

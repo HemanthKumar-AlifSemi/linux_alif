@@ -2044,6 +2044,7 @@ F:	Documentation/devicetree/bindings/usb/alif,ensemble-usb3.yaml
 F:	drivers/counter/register_offsets.h
 F:	drivers/counter/utimer.c
 F:	drivers/crypto/alif-crc.c
+F:	drivers/dma/alif/*
 F:	drivers/hwspinlock/alif_hwsem.c
 F:	drivers/iio/dac/ensemble-dac.c
 F:	drivers/iio/imu/bmi323/bmi323_i3c.c
