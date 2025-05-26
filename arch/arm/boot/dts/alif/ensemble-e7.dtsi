@@ -1163,7 +1163,10 @@
 				<&psclks ENSEMBLE_I2S3_BIT_CLK>;
 			clock-names = "pclk","i2sclk";
 			#sound-dai-cells = <0>;
-			interrupts = <GIC_SPI 133 IRQ_TYPE_LEVEL_HIGH>;
+/*			interrupts = <GIC_SPI 133 IRQ_TYPE_LEVEL_HIGH>;*/
+			dmas = <&event_router 31 1>,
+				 <&event_router 27 1>;
+			dma-names = "tx","rx";
 			status = "disabled";
 		};
 
@@ -1508,6 +1511,13 @@
 /*			i3c-scl-hz = <2000000>;*/
 			status = "disabled";
 		};
+		/* ALIF Event Router */
+		event_router: dma-router@49035000 {
+			compatible = "alif,event-router";
+			reg = <0x49035000 0x1000>;
+			#dma-cells = <2>; /* channel, source */
+			dma-masters = <&dmac_bus_ns>;
+		};
 	};
 	apb_e: apb@49040000 {
 		compatible = "simple-bus";
@@ -1568,7 +1578,8 @@
 			#dma-channels = <8>;
 			#dma-requests = <32>;
 			dma-channel-mask = <0x000fffff>;
-			clocks = <&psclks ENSEMBLE_SYST_ACLK>;
+			clocks = <&psclks ENSEMBLE_DMA_ENA_CLK>;
+			clock-names = "apb_pclk";
 		};
 	};
 };
