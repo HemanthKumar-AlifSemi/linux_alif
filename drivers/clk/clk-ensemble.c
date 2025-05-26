@@ -444,6 +444,8 @@ static void __init ensemble_clocks_init(struct device_node *ccps_node)
 					"76m8_clk", base + 0x18, 0, 10);
 	hws[ENSEMBLE_I2S3_BIT_CLK] = ensemble_clk_hw_divider("i2s3_bit_clk",
 					"76m8_clk", base + 0x1c, 0, 10);
+	hws[ENSEMBLE_DMA_ENA_CLK] = ensemble_clk_hw_gate("dma_clk",
+				"syst_aclk", ccpmst_base + 0xC, 4);
 
 	for (int i = 0; i < ENSEMBLE_CLK_END; i++) {
 		if (IS_ERR(hws[i]))
