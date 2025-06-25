@@ -32,7 +32,7 @@ static struct clk_hw **hws;
 static struct clk_hw_onecell_data *clk_hw_data;
 static const char *const uart_clk_src_sels[] = { "hfxo", "syst_pclk", };
 static const char *const canfd_clk_src_sels[] = { "hfosc_clk", "160m_clk", };
-static const char *const audio_clk_src_sels[] = { "76m8_clk", "audio_clk", };
+static const char *const audio_clk_src_sels[] = { "cgu_76m8_clk", "audio_clk", };
 static const char *const pixclk_sels[] = {"syst_aclk", "pll_clk3", };
 static const char *const eth_clk_sels[] = {"eth_refclk", "50m_clk"};
 static const char *const adc_clk_sels[] = {"syst_pclk", "160m_clk"};
@@ -391,14 +391,18 @@ static void __init ensemble_clocks_init(struct device_node *ccps_node)
 				ARRAY_SIZE(sd_clk_sels));
 	clk_set_parent(hws[ENSEMBLE_SD_CLK]->clk, hws[ENSEMBLE_100M_CLK]->clk);
 
+	hws[ENSEMBLE_CGU_76M8_CLK] = ensemble_clk_hw_gate("cgu_76m8_clk",
+				"76m8_clk", cgu_base + 0x14, 24);
+
 	hws[ENSEMBLE_PDM_SCLK] = ensemble_clk_hw_mux("pdm_sclk",
 				base + 0x0, 9, 1, audio_clk_src_sels,
 				ARRAY_SIZE(audio_clk_src_sels));
 
-	clk_set_parent(hws[ENSEMBLE_PDM_SCLK]->clk, hws[ENSEMBLE_76M8_CLK]->clk);
+	clk_set_parent(hws[ENSEMBLE_PDM_SCLK]->clk, hws[ENSEMBLE_CGU_76M8_CLK]->clk);
 
 	hws[ENSEMBLE_PDM_CLK] = ensemble_clk_hw_gate("pdm_clk",
 				"pdm_sclk", base + 0x0, 8);
+
 
 	hws[ENSEMBLE_I2S0_SCLK] = ensemble_clk_hw_mux("i2s0_sclk",
 				base + 0x10, 16, 1, audio_clk_src_sels,
@@ -413,10 +417,10 @@ static void __init ensemble_clocks_init(struct device_node *ccps_node)
 				base + 0x1c, 16, 1, audio_clk_src_sels,
 				ARRAY_SIZE(audio_clk_src_sels));
 
-	clk_set_parent(hws[ENSEMBLE_I2S0_SCLK]->clk, hws[ENSEMBLE_76M8_CLK]->clk);
-	clk_set_parent(hws[ENSEMBLE_I2S1_SCLK]->clk, hws[ENSEMBLE_76M8_CLK]->clk);
-	clk_set_parent(hws[ENSEMBLE_I2S2_SCLK]->clk, hws[ENSEMBLE_76M8_CLK]->clk);
-	clk_set_parent(hws[ENSEMBLE_I2S3_SCLK]->clk, hws[ENSEMBLE_76M8_CLK]->clk);
+	clk_set_parent(hws[ENSEMBLE_I2S0_SCLK]->clk, hws[ENSEMBLE_CGU_76M8_CLK]->clk);
+	clk_set_parent(hws[ENSEMBLE_I2S1_SCLK]->clk, hws[ENSEMBLE_CGU_76M8_CLK]->clk);
+	clk_set_parent(hws[ENSEMBLE_I2S2_SCLK]->clk, hws[ENSEMBLE_CGU_76M8_CLK]->clk);
+	clk_set_parent(hws[ENSEMBLE_I2S3_SCLK]->clk, hws[ENSEMBLE_CGU_76M8_CLK]->clk);
 
 	hws[ENSEMBLE_I2S0_SCLK_AON] = ensemble_clk_hw_gate("i2s0_aon_clk",
 				"i2s0_sclk", base + 0x10, 20);
