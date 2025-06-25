@@ -49,26 +49,24 @@
 		rootfstype=cramfs ro loglevel=9";
 	};
 
-	t5848: acodec {
-		#sound-dai-cells = <0>;
-		compatible = "invensense,t5848";
-	};
-
-	sound-memsmic {
+	sound-wm8904 {
 		compatible = "simple-audio-card";
-		simple-audio-card,name = "mems-mic";
+		simple-audio-card,name = "wm8904-audio";
 		simple-audio-card,format = "i2s";
-		simple-audio-card,frame-master = <&cpudai_1>;
-		simple-audio-card,bitclock-master = <&cpudai_1>;
+		simple-audio-card,frame-master = <&cpudai_0>;
+		simple-audio-card,bitclock-master = <&cpudai_0>;
+		simple-audio-card,widgets =
+			"Headphone Jack", "Left Line Out",
+			"Headphone Jack", "Right Line Out";
 
-		cpudai_1: simple-audio-card,cpu {
+		cpudai_0: simple-audio-card,cpu {
 			sound-dai = <&i2s3>;
 		};
-
-		mcodec: simple-audio-card,codec {
-			sound-dai = <&t5848>;
+		acodec: simple-audio-card,codec {
+			sound-dai = <&wm8904>;
 		};
 	};
+
 };
 
 &utimer {
@@ -122,9 +120,19 @@
 };
 
 &i2c1 {
+	#address-cells = <1>;
+	#size-cells = <0>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c1>;
 	status = I2C1_STATUS;
+	wm8904: wm8904@1a {
+		compatible = "wlf,wm8904";
+		reg = <0x1a>;
+		#sound-dai-cells = <0>;
+		clocks = <&wm8904_mclk>;
+		clock-names = "mclk";
+	};
+
 };
 
 &i2s3 {
@@ -430,8 +438,8 @@
 	};
 	pinctrl_i2c1: i2c1grp {
 		pinmux = <
-			PIN_P7_2__I2C1_SDA_C	0x0
-			PIN_P7_3__I2C1_SCL_C	0x0
+			PIN_P7_2__I2C1_SDA_C	0x23
+			PIN_P7_3__I2C1_SCL_C	0x23
 		>;
 	};
 
@@ -440,6 +448,7 @@
 			PIN_P8_6__I2S3_SCLK_B	0x23
 			PIN_P8_7__I2S3_WS_B	0x23
 			PIN_P9_0__I2S3_SDI_B	0x23
+			PIN_P9_3__I2S3_SDO_A	0x23
 		>;
 	};
 

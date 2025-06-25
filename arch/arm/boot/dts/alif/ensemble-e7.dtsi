@@ -83,6 +83,12 @@
 			clock-frequency = <20000000>;
 			clock-output-names = "ext_clk";
 		};
+		wm8904_mclk: clock-12m288 {
+			compatible = "fixed-clock";
+			#clock-cells = <0>;
+			clock-frequency = <12288000>;
+			clock-output-names = "wm8904_mclk";
+		};
 	};
 
 	refclk: refclk@1a220000 {
