@@ -8,6 +8,7 @@
 # contact@alifsemi.com, or visit: https://alifsemi.com/license
 config ALIF_PDM
 	bool "Alif PDM Audio Support"
+	select REGMAP_MMIO
 	help
 	 Enable this option to include the Alif PDM audio driver in the kernel.
 	 This driver supports Pulse Code Modulation (PCM) audio streams on Alif
