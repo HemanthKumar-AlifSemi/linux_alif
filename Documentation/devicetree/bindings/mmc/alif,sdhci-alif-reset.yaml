@@ -1,0 +1,35 @@
+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+%YAML 1.2
+---
+$id: http://devicetree.org/schemas/bindings/mmc/ensemble,sd-reset.yaml#
+$schema: http://devicetree.org/meta-schemas/core.yaml#
+
+title: Ensemble SD Controller Reset and Card Detect Binding
+
+maintainers:
+  - Your Name <your.email@example.com>
+
+description: |
+  This binding describes a custom node used to control the reset and card detect
+  lines for an SD/MMC controller on the Ensemble SoC platform.
+
+properties:
+  compatible:
+    const: ensemble,sd-reset
+
+  reset-gpios:
+    maxItems: 1
+    description: |
+      GPIO specifier for the reset pin connected to the SD/MMC controller.
+      Should contain a phandle and GPIO specifier per the GPIO binding.
+
+required:
+  - compatible
+  - reset-gpios
+
+examples:
+  - |
+    sd_reset: sd-reset {
+        compatible = "alif,sd-reset";
+        reset-gpios = <&port15 7 GPIO_ACTIVE_HIGH>;
+    };
