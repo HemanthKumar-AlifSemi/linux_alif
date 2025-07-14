@@ -345,6 +345,11 @@
 	status = SE_MHU1_RX_STATUS;
 };
 
+&sd_reset {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_sd_reset>;
+};
+
 &sdmmc {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_sdhci>;
@@ -613,6 +618,11 @@
 		PIN_P1_3__ANA_S11       0x23
 		PIN_P1_7__ANA_S15       0x23
 		PIN_P14_4__CMP3_OUT_B   0x1
+		>;
+	};
+	pinctrl_sd_reset: sd_resetgrp {
+		pinmux = <
+			PIN_P14_7__GPIO		0x23 /* sd reset line*/
 		>;
 	};
 	pinctrl_sdhci: sdhci0grp {

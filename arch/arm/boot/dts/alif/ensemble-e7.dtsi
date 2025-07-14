@@ -470,6 +470,11 @@
 			};
 		};
 
+		sd_reset: sd-reset {
+			compatible = "alif,sd-reset";
+			reset-gpios = <&port15 7 GPIO_ACTIVE_HIGH>;
+		};
+
 		sdmmc: sdhci@48102000 {
 			compatible = "snps,dwcmshc-sdhci";
 			reg = <0x48102000 0x1000>;
