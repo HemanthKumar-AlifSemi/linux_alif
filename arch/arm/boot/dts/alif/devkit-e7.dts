@@ -83,7 +83,7 @@
 &pdm0 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_pdm0>;
-	status = PCM_STATUS;
+	status = PDM_STATUS;
 };
 
 &uart0 {

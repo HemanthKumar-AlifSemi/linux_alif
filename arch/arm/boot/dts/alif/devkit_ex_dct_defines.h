@@ -117,7 +117,7 @@
 /* D2D Defines */
 #define DAVE_2D_STATUS "okay"
 
-/* PCM Defines */
-#define PCM_STATUS "disabled"
+/* PDM Defines */
+#define PDM_STATUS "disabled"
 
 #endif /* __DEVKIT_DCT_H__ */
