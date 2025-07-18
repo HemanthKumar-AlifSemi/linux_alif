@@ -7,11 +7,11 @@ $schema: http://devicetree.org/meta-schemas/core.yaml#
 title: Ensemble SD Controller Reset and Card Detect Binding
 
 maintainers:
-  - Your Name <your.email@example.com>
+  - Pankaj Pandey <pankaj.pandey@alifsemi.com>
 
 description: |
   This binding describes a custom node used to control the reset and card detect
-  lines for an SD/MMC controller on the Ensemble SoC platform.
+  lines for an SD/MMC controller on the Ensemble devkit platform.
 
 properties:
   compatible:
