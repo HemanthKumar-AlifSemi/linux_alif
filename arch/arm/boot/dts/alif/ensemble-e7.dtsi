@@ -33,10 +33,9 @@
 
 	memory@2000000 {
 		device_type = "memory";
-		reg = <0x02000000 0x400000>,
-		      <0x08020000 0x260000>;
-		      /* 0x20000 @ 0x08000000 reserved for arm-tf */
-		      /* 0x1000 @ 0x0827F000 reserved for MHU services */
+		reg = <0x02000000 0x7DE000>;
+		      /* 0x20000 @ 0x027DE000 reserved for arm-tf */
+		      /* 0x1000 @ 0x027FE000 reserved for MHU services */
 	};
 
 	gic: interrupt-controller@1c000000 {
