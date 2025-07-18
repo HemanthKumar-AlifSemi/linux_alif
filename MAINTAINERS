@@ -2042,6 +2042,7 @@ F:	Documentation/devicetree/bindings/sound/alif,alif-pcm-card.yaml
 F:	Documentation/devicetree/bindings/sound/alif,alif-pcm.yaml
 F:	Documentation/devicetree/bindings/sound/invensense,t5848.yaml
 F:	Documentation/devicetree/bindings/usb/alif,ensemble-usb3.yaml
+F:	arch/arm/mach-ensemble/sdhci-alif-reset.c
 F:	drivers/counter/register_offsets.h
 F:	drivers/counter/utimer.c
 F:	drivers/crypto/alif-crc.c
@@ -2051,7 +2052,6 @@ F:	drivers/iio/dac/ensemble-dac.c
 F:	drivers/iio/imu/bmi323/bmi323_i3c.c
 F:	drivers/misc/alif-comparator.c
 F:	drivers/misc/cmp.h
-F:	drivers/mmc/host/sdhci-alif-reset.c
 F:	drivers/regulator/ensemble-regulator.c
 F:	drivers/rpmsg/rpmsg_arm_mailbox.c
 F:	drivers/rtc/rtc-dw-apb.c

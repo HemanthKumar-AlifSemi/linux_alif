@@ -7,4 +7,4 @@ ccflags-y := -I$(srctree)/$(src)/include \
 	-I$(srctree)/arch/arm/plat-ensemble/include
 
 # Common support
-obj-y := ensemble.o
+obj-y := ensemble.o sdhci-alif-reset.o

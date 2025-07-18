@@ -1102,23 +1102,3 @@ config MMC_LITEX
 
 	  If unsure, say N.
 
-config ENSEMBLE_SD_RESET
-	bool "Ensemble SD Card Reset GPIO Support"
-	depends on ARCH_ENSEMBLE
-	help
-	  This enables support for the SD card reset GPIO functionality on Alif
-	  Ensemble platforms. The driver provides proper hardware reset control
-	  for SD/MMC cards through dedicated GPIO pins during card initialization
-	  and error recovery procedures.
-
-	  The driver handles the reset sequence timing according to SD card
-	  specifications, ensuring reliable card detection and initialization
-	  on Ensemble development boards. It also supports card detect GPIO
-	  functionality for proper hotplug detection.
-
-	  This is required for SD card functionality on Alif Ensemble E8
-	  development kits and similar hardware platforms that use GPIO-controlled
-	  SD card reset lines.
-
-	  If you have an Alif Ensemble platform with SD card support, say Y.
-	  If unsure, say N.

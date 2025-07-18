@@ -18,7 +18,6 @@ menuconfig ARCH_ENSEMBLE
 	select MULTI_IRQ_HANDLER
 	select SPARSE_IRQ
 	select USE_OF
-	select ENSEMBLE_SD_RESET
 	help
 	  This option enables support for tiny linux based systems using Cortex
 	  A32 processor.
