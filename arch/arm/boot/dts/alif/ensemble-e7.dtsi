@@ -38,9 +38,27 @@
 		method = "smc";
 	};
 
-	memory@2000000 {
+	mem_stitch@2000000 {
 		device_type = "memory";
 		reg = <0x02000000 0x7DE000>;
+		status = MEM_STITCH_STATUS;
+		      /* 0x20000 @ 0x027DE000 reserved for arm-tf */
+		      /* 0x1000 @ 0x027FE000 reserved for MHU services */
+	};
+
+	mem_hyperam@a0000000 {
+		device_type = "memory";
+		reg = <0xa0000000 0x4000000>;
+		status = MEM_HYPER_STATUS;
+		      /* 0x20000 @ 0x027DE000 reserved for arm-tf */
+		      /* 0x1000 @ 0x027FE000 reserved for MHU services */
+	};
+
+	mem_hyp_stitch@2000000 {
+		device_type = "memory";
+		reg = <0x02000000 0x7DE000>,
+		      <0x20000000 0x4000000>;
+		status = MEM_HYP_STITCH_STATUS;
 		      /* 0x20000 @ 0x027DE000 reserved for arm-tf */
 		      /* 0x1000 @ 0x027FE000 reserved for MHU services */
 	};
