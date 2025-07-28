@@ -4,10 +4,10 @@
 */
 /dts-v1/;
 
-#include "ensemble-e7.dtsi"
+#include "ensemble-e8.dtsi"
 #include "devkit_ex_dct_defines.h"
 / {
-	model = "devkit-e7";
+	model = "devkit-e8";
 	compatible = "alif,ensemble";
 
 	aliases {

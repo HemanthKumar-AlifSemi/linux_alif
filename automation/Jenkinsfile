@@ -42,9 +42,9 @@ pipeline {
                      git checkout ${BRANCH}
 
                      make distclean
-                     make -j64 devkit_e7_defconfig
+                     make -j64 devkit_e8_defconfig
                      make -j64 xipImage
-                     make alif/devkit-e7.dtb
+                     make alif/devkit-e8.dtb
 
                   '''
                }
