@@ -1503,10 +1503,11 @@
 
 		dac0: dac12_0@49028000 {
 			compatible = "alif,ensemble-dac";
-			reg-names = "dac", "cmp","analog";
+			reg-names = "dac", "cmp","analog", "adc";
 			reg = <0x49028000 0x10>,
 				<0x49023000 0x40>,
-				<0x1A60A000 0x40>;
+				<0x1A60A000 0x40>,
+				<0x4902B000 0x40>;
 			clocks = <&psclks ENSEMBLE_DAC120_CLK>,
 				<&psclks ENSEMBLE_CMP0_CLK>;
 			clock-names = "dac_clk", "cmp_clk";
@@ -1515,10 +1516,11 @@
 
 		dac1: dac12_1@49029000 {
 			compatible = "alif,ensemble-dac";
-			reg-names = "dac", "cmp", "analog";
+			reg-names = "dac", "cmp", "analog", "adc";
 			reg = <0x49029000 0x10>,
 				<0x49023000 0x40>,
-				<0x1A60A000 0x40>;
+				<0x1A60A000 0x40>,
+				<0x4902B000 0x40>;
 			clocks = <&psclks ENSEMBLE_DAC121_CLK>,
 				<&psclks ENSEMBLE_CMP0_CLK>;
 			clock-names = "dac_clk", "cmp_clk";
