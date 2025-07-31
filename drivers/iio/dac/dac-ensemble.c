@@ -47,11 +47,13 @@
 
 static void __iomem *dac_analog_base;
 static void __iomem *dac_cmp_base;
+static void __iomem *dac_adc_vref_base;
 
 struct ensemble_dac {
 	void __iomem *base;
 	void __iomem *analog_base;
 	void __iomem *cmp_base;
+	void __iomem *adc_vref_base;
 	struct clk *clk;
 	struct clk *cmp_clk;
 };
@@ -135,6 +137,17 @@ static int ensemble_dac_probe(struct platform_device *pdev)
 	} else {
 		dac->cmp_base = dac_cmp_base;
 	}
+	if (!dac_adc_vref_base) {
+		dac->adc_vref_base = devm_platform_ioremap_resource_byname(pdev, "adc");
+		if (IS_ERR(dac->adc_vref_base)) {
+			dev_err(&pdev->dev, "Failed to map CMP registers\n");
+			return PTR_ERR(dac->adc_vref_base);
+		}
+		dac_adc_vref_base = dac->adc_vref_base;
+	} else {
+		dac->adc_vref_base = dac_adc_vref_base;
+	}
+
 	dac->cmp_clk = devm_clk_get(&pdev->dev, "cmp_clk");
 	if (IS_ERR(dac->cmp_clk)) {
 		dev_err(&pdev->dev, "error getting clock\n");
@@ -162,8 +175,13 @@ static int ensemble_dac_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "unable to enable clock\n");
 		goto exit;
 	}
+	/* Enable ADC Vref buffer enable */
+	reg = readl(dac->adc_vref_base);
+	reg |= (ADC_VREF_BUF_EN | ADC_VREF_BUF_RDIV_EN);
+	writel(reg, dac->adc_vref_base);
+	/* Enable DAC Referece Voltage in CMP0 */
 	reg = readl(dac->cmp_base + CMP_COMP_REG2);
-	reg |= (DAC12_VREF_CONT | ADC_VREF_BUF_EN | ADC_VREF_BUF_RDIV_EN);
+	reg |= DAC12_VREF_CONT;
 	writel(reg, dac->cmp_base + CMP_COMP_REG2);
 	/* Enable Analog Peripheral */
 	reg = readl(dac->analog_base + VBAT_ANA_REG2);
