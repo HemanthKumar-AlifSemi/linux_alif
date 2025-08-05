@@ -1,0 +1,36 @@
+# SPDX-License-Identifier: (GPL-2.0 OR BSD-2-Clause)
+%YAML 1.2
+---
+$id: "http://devicetree.org/schemas/misc/alif,adc-dac6.yaml#"
+$schema: "http://devicetree.org/meta-schemas/core.yaml#"
+
+title: Ensemble ADC_VREF and DAC6 registers init Device Tree Binding
+
+maintainers:
+  - name: Pankaj Pandey
+    email: pankaj.pandey@alifsemi.com
+
+description: |
+  This binding describes a custom node used to initialized the
+  ADC_VREF and DAC6 on ensemble devkit platform.
+
+properties:
+  compatible:
+    const: alif,adc-dac6
+
+  reg:
+    maxItems: 1
+    description: Memory-mapped register range for the ADC-DAC6 block.
+
+required:
+  - compatible
+  - reg
+
+additionalProperties: false
+
+examples:
+  - |
+    adc_dac6: adc-dac6@4902a000 {
+      compatible = "alif,adc-dac6";
+      reg = <0x4902a000 0x2000>;
+    };
