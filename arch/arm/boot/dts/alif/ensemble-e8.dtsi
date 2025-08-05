@@ -499,6 +499,11 @@
 			reset-gpios = <&port15 7 GPIO_ACTIVE_HIGH>;
 		};
 
+		adc_dac6: adc-dac6@4902a000 {
+			compatible = "alif,adc-dac6";
+			reg = <0x4902a000 0x2000>;
+		};
+
 		sdmmc: sdhci@48102000 {
 			compatible = "snps,dwcmshc-sdhci";
 			reg = <0x48102000 0x1000>;
