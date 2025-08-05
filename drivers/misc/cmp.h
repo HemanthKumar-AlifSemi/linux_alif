@@ -15,9 +15,6 @@
 #include <linux/spinlock.h>
 #include <linux/completion.h>
 
-void __iomem *cmp_base_cmp0;
-void __iomem *analog_base_cmp0;
-
 /* CMP0-CMP3 instances */
 enum CMP_INSTANCE {
 	CMP0_INSTANCE,
@@ -50,12 +47,13 @@ enum CMP_HYST {
 	CMP_HYST_24_mV,
 	CMP_HYST_30_mV,
 	CMP_HYST_36_mV,
-	CMP_HYST_42_mV
+	CMP_HYST_45_mV
 };
 
 /* Main comparator device structure */
 struct cmp_device {
 	void __iomem *regs;		/* Register base address */
+	void __iomem *dac6_regs;	/* dac6_reg Register base address */
 	struct gpio_desc *gpiod;	/* Input GPIO from comparator output */
 	struct gpio_desc *led;		/* Optional LED GPIO */
 	struct miscdevice misc;		/* Misc device interface */
@@ -66,6 +64,7 @@ struct cmp_device {
 	spinlock_t lock_s;		/* spinlock for threaded irq handler */
 	struct completion completion;	/* For waiting on interrupt */
 	const char *name;		/* Device name for instance check */
+	int g_val;
 
 	/* Configuration parameters */
 	u8 pos_input;			/* Positive input source */
@@ -92,10 +91,7 @@ struct cmp_device {
 #define CMP_INTERRUPT_MASK   (0x24)
 
 /* Bitfield definitions */
-#define CMP0_ENABLE  (1U << 28)
-#define CMP1_ENABLE  (1U << 29)
-#define CMP2_ENABLE  (1U << 30)
-#define CMP3_ENABLE  (1U << 31)
+#define CMP_ENABLE  (1U << 28)
 
 #define CMP_FILTER_CONTROL_ENABLE (1U << 0)
 #define CMP_PRESCALER_MAX_VALUE   (0x3FU)
@@ -105,26 +101,26 @@ struct cmp_device {
 #define CMP_FILTER_MAX_VALUE      (0x8U)
 
 #define CMP_WINDOW_CONTROL_ENABLE (3U)
-#define CMP_INT_STATUS_MASK       (1U)
+#define CMP_INT_STATUS_MASK       (3U)
 /* CMP0 macro */
 #define CMP0_IN_POS_SEL_POS (0)
 #define CMP0_IN_NEG_SEL_POS (2)
 #define CMP0_HYST_SEL_POS   (4)
 
 /* CMP1 macro */
-#define CMP1_IN_POS_SEL_POS (7)
-#define CMP1_IN_NEG_SEL_POS (9)
-#define CMP1_HYST_SEL_POS   (11)
+#define CMP1_IN_POS_SEL_POS (0)
+#define CMP1_IN_NEG_SEL_POS (2)
+#define CMP1_HYST_SEL_POS   (4)
 
 /* CMP2 macro */
-#define CMP2_IN_POS_SEL_POS (14)
-#define CMP2_IN_NEG_SEL_POS (16)
-#define CMP2_HYST_SEL_POS   (18)
+#define CMP2_IN_POS_SEL_POS (0)
+#define CMP2_IN_NEG_SEL_POS (2)
+#define CMP2_HYST_SEL_POS   (4)
 
 /* CMP3 macro */
-#define CMP3_IN_POS_SEL_POS (21)
-#define CMP3_IN_NEG_SEL_POS (23)
-#define CMP3_HYST_SEL_POS   (25)
+#define CMP3_IN_POS_SEL_POS (0)
+#define CMP3_IN_NEG_SEL_POS (2)
+#define CMP3_HYST_SEL_POS   (4)
 
 #define CMP_COMP_REG2 0x4
 
@@ -144,6 +140,7 @@ struct cmp_device {
 
 #define CMP_FILTER_EVENT0_CLEAR (1U << 0)
 #define CMP_FILTER_EVENT1_CLEAR (1U << 1)
+#define CMP_FILTER_EVENT_CLEAR_ALL (CMP_FILTER_EVENT0_CLEAR | CMP_FILTER_EVENT1_CLEAR)
 
 #define CMP_POLARITY_MASK    BIT(0)  // Single bit (bit 0)
 #define CMP_FILTER_TAPS_MASK    GENMASK(3, 0)  // 4-bit field (bits 3:0)

@@ -1464,8 +1464,7 @@
 			interrupt-parent = <&gic>;
 			interrupts = <0 156 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&psclks ENSEMBLE_CMP0_CLK>;
-			cmp-gpios = <&port15 7 GPIO_ACTIVE_HIGH>;
-			led-gpios = <&port13 3 GPIO_ACTIVE_HIGH>;
+			led-gpios = <&port13 0 GPIO_ACTIVE_HIGH>;
 			instance = <0>;
 			status = "disabled";
 		};
@@ -1477,7 +1476,6 @@
 			interrupt-parent = <&gic>;
 			interrupts = <0 157 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&psclks ENSEMBLE_CMP1_CLK>;
-			cmp-gpios = <&port15 6 GPIO_ACTIVE_HIGH>;
 			instance = <1>;
 			status = "disabled";
 		};
@@ -1489,7 +1487,6 @@
 			interrupt-parent = <&gic>;
 			interrupts = <0 158 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&psclks ENSEMBLE_CMP2_CLK>;
-			cmp-gpios = <&port15 5 GPIO_ACTIVE_HIGH>;
 			instance = <2>;
 			status = "disabled";
 		};
@@ -1501,7 +1498,6 @@
 			interrupt-parent = <&gic>;
 			interrupts = <0 159 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&psclks ENSEMBLE_CMP3_CLK>;
-			cmp-gpios = <&port15 4 GPIO_ACTIVE_HIGH>;
 			instance = <3>;
 			status = "disabled";
 		};

@@ -595,21 +595,20 @@
 		pinmux = <
 			PIN_P0_0__ANA_S0        0x23
 			PIN_P0_6__ANA_S6        0x23
-			PIN_P14_7__CMP0_OUT_B   0x1
 		>;
 	};
 	pinctrl_cmp1: cmp1grp {
 		pinmux = <
 			PIN_P0_1__ANA_S1        0x23
 			PIN_P0_5__ANA_S5        0x23
-			PIN_P14_6__CMP1_OUT_B   0x1
+			PIN_P0_7__ANA_S7        0x23
+			PIN_P1_5__ANA_S13       0x23
 		>;
 	};
 	pinctrl_cmp2: cmp2grp {
 		pinmux = <
 			PIN_P0_2__ANA_S2        0x23
 			PIN_P1_2__ANA_S10       0x23
-			PIN_P14_5__CMP2_OUT_B   0x1
 		>;
 	};
 	pinctrl_cmp3: cmp3grp {
@@ -617,7 +616,6 @@
 		PIN_P0_3__ANA_S3        0x23
 		PIN_P1_3__ANA_S11       0x23
 		PIN_P1_7__ANA_S15       0x23
-		PIN_P14_4__CMP3_OUT_B   0x1
 		>;
 	};
 	pinctrl_sd_reset: sd_resetgrp {

@@ -27,10 +27,9 @@
 #define DEFAULT_FILTER_TAPS 5
 #define DEFAULT_PRESCALAR 8
 #define DEFAULT_POLARITY 0
-#define TIMEOUT_MS 1000
+#define TIMEOUT_MS 2000
 
 static struct gpio_desc *shared_led;
-static uint32_t data_diff;
 
 /* Forward declarations */
 static int cmp_start(struct cmp_device *cmp);
@@ -53,20 +52,6 @@ static void cmp_analog_config(void)
 	val |= (BIT(22) | BIT(23));
 	writel(val, va_base + ANA_VBAT_REG2);
 	iounmap(va_base);
-
-	val = ioread32(cmp_base_cmp0 + CMP_COMP_REG2);
-	val |= (DAC6_VREF_SCALE | DAC6_CONT | DAC6_EN | DAC12_VREF_CONT | ADC_VREF_BUF_RDIV_EN
-		| ADC_VREF_BUF_EN | ADC_VREF_CONT | ANA_PERIPH_LDO_CONT | ANA_PERIPH_BG_CONT);
-	writel(val, cmp_base_cmp0 + CMP_COMP_REG2);
-}
-
-static void cmp_set_polarity(struct cmp_device *cmp)
-{
-	u32 val;
-
-	val = readl(cmp->regs + CMP_POLARITY_CTRL);
-	val |= FIELD_PREP(CMP_POLARITY_MASK, cmp->polarity);
-	writel(val, cmp->regs + CMP_POLARITY_CTRL);
 }
 
 static void cmp_set_filter(struct cmp_device *cmp)
@@ -96,55 +81,44 @@ static void cmp_enable_interrupt(struct cmp_device *cmp)
 
 static void cmp_set_config(struct cmp_device *cmp)
 {
-	void __iomem *regs = cmp_base_cmp0;
+	u32 val;
 
 	switch (cmp->instance) {
 
 	case CMP0_INSTANCE:
-		data_diff |= cmp->pos_input << CMP0_IN_POS_SEL_POS |
-		cmp->neg_input << CMP0_IN_NEG_SEL_POS |
-		cmp->hysteresis << CMP0_HYST_SEL_POS;
+		val = cmp->pos_input << CMP0_IN_POS_SEL_POS | cmp->neg_input  << CMP0_IN_NEG_SEL_POS
+				| cmp->hysteresis << CMP0_HYST_SEL_POS;
 		break;
 
 	case CMP1_INSTANCE:
-		data_diff |= cmp->pos_input << CMP1_IN_POS_SEL_POS |
-		cmp->neg_input  << CMP1_IN_NEG_SEL_POS |
-		cmp->hysteresis << CMP1_HYST_SEL_POS;
+		val = cmp->pos_input << CMP1_IN_POS_SEL_POS | cmp->neg_input  << CMP1_IN_NEG_SEL_POS
+				| cmp->hysteresis << CMP1_HYST_SEL_POS;
 		break;
 
 	case CMP2_INSTANCE:
-		data_diff |= cmp->pos_input << CMP2_IN_POS_SEL_POS |
-		cmp->neg_input  << CMP2_IN_NEG_SEL_POS |
-		cmp->hysteresis << CMP2_HYST_SEL_POS;
+		val = cmp->pos_input << CMP2_IN_POS_SEL_POS | cmp->neg_input  << CMP2_IN_NEG_SEL_POS
+				| cmp->hysteresis << CMP2_HYST_SEL_POS;
 		break;
 
 	case CMP3_INSTANCE:
-		data_diff |= cmp->pos_input << CMP3_IN_POS_SEL_POS |
-		cmp->neg_input  << CMP3_IN_NEG_SEL_POS |
-		cmp->hysteresis << CMP3_HYST_SEL_POS;
+		val = cmp->pos_input << CMP2_IN_POS_SEL_POS | cmp->neg_input  << CMP2_IN_NEG_SEL_POS
+				| cmp->hysteresis << CMP2_HYST_SEL_POS;
 		break;
 	}
-
-	writel(data_diff, regs + CMP_COMP_REG1);
+	writel(val, cmp->regs);
 }
 
 static int cmp_enable(struct cmp_device *cmp)
 {
-	void __iomem *regs = cmp_base_cmp0;
-	const u32 enable_mask[] = {
-		CMP0_ENABLE,
-		CMP1_ENABLE,
-		CMP2_ENABLE,
-		CMP3_ENABLE
-	};
-
-	data_diff = readl(regs);
+	u32 val;
 
 	if (cmp->instance >= CMP_MAX_INSTANCES)
 		return -EINVAL;
 
-	data_diff |= enable_mask[cmp->instance];
-	writel(data_diff, regs);
+	val = readl(cmp->regs);
+	val |= CMP_ENABLE;
+	writel(val, cmp->regs);
+	val = readl(cmp->regs);
 	return 0;
 }
 
@@ -154,9 +128,6 @@ static int cmp_start(struct cmp_device *cmp)
 
 	/* Configure comparator settings */
 	cmp_set_config(cmp);
-
-	/* Set polarity control */
-	cmp_set_polarity(cmp);
 
 	/* Configure filter */
 	cmp_set_filter(cmp);
@@ -180,8 +151,9 @@ static irqreturn_t alif_cmp_isr(int irq, void *dev_id)
 	struct cmp_device *cmp = dev_id;
 	uint8_t int_status = readl(cmp->regs + CMP_INTERRUPT_STATUS) & CMP_INT_STATUS_MASK;
 
-	/* Clear interrupt flags (Top Half) */
-	if (int_status == CMP_FILTER_EVENT0_CLEAR)
+	if (int_status == CMP_FILTER_EVENT_CLEAR_ALL)
+		writel(CMP_FILTER_EVENT_CLEAR_ALL, cmp->regs + CMP_INTERRUPT_STATUS);
+	else if (int_status == CMP_FILTER_EVENT0_CLEAR)
 		writel(CMP_FILTER_EVENT0_CLEAR, cmp->regs + CMP_INTERRUPT_STATUS);
 	else if (int_status == CMP_FILTER_EVENT1_CLEAR)
 		writel(CMP_FILTER_EVENT1_CLEAR, cmp->regs + CMP_INTERRUPT_STATUS);
@@ -194,7 +166,7 @@ static irqreturn_t alif_cmp_threaded_isr(int irq, void *dev_id)
 {
 	struct cmp_device *cmp = dev_id;
 	unsigned long flags;
-	int status = gpiod_get_value(cmp->gpiod);
+	int status = readl(cmp->regs + CMP_STATUS);
 
 	/* Process GPIO (Bottom Half) */
 	if (status <= 1) {
@@ -204,6 +176,7 @@ static irqreturn_t alif_cmp_threaded_isr(int irq, void *dev_id)
 	} else {
 		return IRQ_NONE;
 	}
+	cmp->g_val = atomic_read(&cmp->counter);
 
 	/* Notify userspace (e.g., sysfs, completion) */
 	complete(&cmp->completion);
@@ -216,7 +189,7 @@ static ssize_t status_show(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
 	struct cmp_device *cmp = dev_get_drvdata(dev);
-	int val = atomic_read(&cmp->counter);
+	int val = cmp->g_val;
 
 	if (val < 0)
 		return val;
@@ -254,7 +227,6 @@ static ssize_t status_store(struct device *dev,
 
 	reinit_completion(&cmp->completion);
 	dev_info(dev, "LED %s\n", value ? "ON" : "OFF");
-
 	return count;
 }
 
@@ -362,7 +334,7 @@ static void cmp_init_defaults(struct cmp_device *cmp)
 {
 	cmp->pos_input = CMP_POS_IN0;
 	cmp->neg_input = CMP_NEG_IN3;
-	cmp->hysteresis = CMP_HYST_42_mV;
+	cmp->hysteresis = CMP_HYST_45_mV;
 	cmp->filter_taps = DEFAULT_FILTER_TAPS;
 	cmp->prescalar = DEFAULT_PRESCALAR;
 	cmp->polarity = DEFAULT_POLARITY;
@@ -384,10 +356,6 @@ static int cmp_probe(struct platform_device *pdev)
 	cmp->regs = devm_platform_ioremap_resource_byname(pdev, "cmp_reg");
 	if (IS_ERR(cmp->regs))
 		return PTR_ERR(cmp->regs);
-
-	cmp->gpiod = devm_gpiod_get(dev, "cmp", GPIOD_IN);
-	if (IS_ERR(cmp->gpiod))
-		return PTR_ERR(cmp->gpiod);
 
 	if (!shared_led) {
 		shared_led = devm_gpiod_get(dev, "led", GPIOD_OUT_LOW);
@@ -411,8 +379,6 @@ static int cmp_probe(struct platform_device *pdev)
 
 	/* Instance-specific setup */
 	if (cmp->instance == CMP0_INSTANCE) {
-		cmp_base_cmp0 = cmp->regs;
-
 		cmp->misc = (struct miscdevice){
 			.minor = MISC_DYNAMIC_MINOR,
 			.name = "cmp-dev",
@@ -424,6 +390,7 @@ static int cmp_probe(struct platform_device *pdev)
 			dev_err(dev, "Failed to register misc device: %d\n", ret);
 			return ret;
 		}
+	cmp_analog_config();
 	}
 
 	ret = devm_request_threaded_irq(&pdev->dev, cmp->irq, alif_cmp_isr,
@@ -444,39 +411,27 @@ static int cmp_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, cmp);
 
 	/* Initialize hardware */
-	cmp_analog_config();
 	ret = cmp_start(cmp);
 	if (ret) {
 		dev_err(dev, "Failed to start comparator hardware: %d\n", ret);
 		goto err_hw;
 	}
 
-	dev_info(dev, "ALIF CMP driver loaded for IRQ %d\n", cmp->irq);
+	dev_info(dev,
+		"ALIF CMP driver loaded for IRQ %d and MMIO base=0x%px\n",
+		cmp->irq, cmp->regs);
 	return 0;
 
 err_hw:
 	/* Disable comparator hardware */
 	{
-		u32 val = readl(cmp_base_cmp0);
+		u32 val = readl(cmp->regs);
 
-		switch (cmp->instance) {
-		case CMP0_INSTANCE:
-			val &= ~CMP0_ENABLE;
-			break;
-		case CMP1_INSTANCE:
-			val &= ~CMP1_ENABLE;
-			break;
-		case CMP2_INSTANCE:
-			val &= ~CMP2_ENABLE;
-			break;
-		case CMP3_INSTANCE:
-			val &= ~CMP3_ENABLE;
-			break;
-		}
-		writel(val, cmp_base_cmp0);
+		val &= ~CMP_ENABLE;
+		writel(val, cmp->regs);
 
 		/* Mask all interrupts */
-		writel(CMP_INTERRUPT_MASK_VAL, cmp_base_cmp0 + CMP_INTERRUPT_MASK);
+		writel(CMP_INTERRUPT_MASK_VAL, cmp->regs + CMP_INTERRUPT_MASK);
 		sysfs_remove_group(&dev->kobj, &cmp_attr_group);
 	}
 err_irq:
