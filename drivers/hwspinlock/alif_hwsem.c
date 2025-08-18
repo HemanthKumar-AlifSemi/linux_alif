@@ -65,11 +65,15 @@ static long hwsem_ioctl(struct file *f,
 	case HWSEM_RD_CNT:
 		return readl(drvdata->hwsem_base + HWSEM_REL_OFFSET);
 	case HWSEM_UNLOCK:
+		spin_lock(&drvdata->lock);
 		writel(MASTER_ID, drvdata->hwsem_base + HWSEM_REL_OFFSET);
+		spin_unlock(&drvdata->lock);
 		break;
 	case HWSEM_LOCK:
-		if (__test_and_clear_bit(HWSEM_IRQ_DISABLED, &drvdata->flags))
+		if (__test_and_clear_bit(HWSEM_IRQ_DISABLED, &drvdata->flags)) {
 			enable_irq(drvdata->irq);
+			synchronize_irq(drvdata->irq);
+		}
 		while (1) {
 			/* Wait until,
 			 *   1. HWSEM becomes free,i.e drvdata->ready is true and
