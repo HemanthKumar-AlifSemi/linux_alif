@@ -94,7 +94,6 @@
 /* DAC defines */
 #define DAC120_STATUS "disabled"
 #define DAC121_STATUS "disabled"
-#define DAC122_STATUS "disabled"
 
 /* I2C Defines */
 #define I2C0_STATUS "disabled"
