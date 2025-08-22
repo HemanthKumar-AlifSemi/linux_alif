@@ -2033,6 +2033,7 @@ F:	Documentation/devicetree/bindings/counter/alif,alif-utimer.yaml
 F:	Documentation/devicetree/bindings/crypto/alif,alif-crccode.yaml
 F:	Documentation/devicetree/bindings/dma/alif,event-router.yaml
 F:	Documentation/devicetree/bindings/hwlock/alif,hwsem.yaml
+F:	Documentation/devicetree/bindings/iio/adc/alif,adc-dev.yaml
 F:	Documentation/devicetree/bindings/iio/dac/alif,ensemble-dac.yaml
 F:	Documentation/devicetree/bindings/misc/alif,cmp-module.yaml
 F:	Documentation/devicetree/bindings/mmc/alif,sdhci-alif-reset.yaml

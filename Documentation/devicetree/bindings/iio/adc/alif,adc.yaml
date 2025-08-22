@@ -1,0 +1,94 @@
+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+%YAML 1.2
+---
+$id: "http://devicetree.org/schemas/iio/adc/alif,adc.yaml#"
+$schema: "http://devicetree.org/meta-schemas/core.yaml#"
+
+title: Alif Ensemble ADC12/ADC24 Controller
+
+maintainers:
+  - name: Pankaj Pandey
+    email: pankaj.pandey@alifsemi.com
+
+description: |
+  The Alif Ensemble platform integrates multiple ADC controllers:
+  - ADC12 instances (12-bit ADC, multiple channels, multiple interrupts)
+  - ADC24 instance (24-bit ADC, multiple interrupts)
+
+  Each ADC block supports a set of interrupts and requires an
+  associated functional clock.
+
+properties:
+  compatible:
+    enum:
+      - alif,adc-dev
+
+  reg:
+    maxItems: 1
+    description: Register base and size of the ADC instance.
+
+  reg-names:
+    const: adc_base
+
+  interrupt-parent:
+    description: Parent interrupt controller (usually GIC).
+
+  interrupts:
+    minItems: 1
+    maxItems: 4
+    description: |
+      Four interrupts per ADC instance, ordered as documented in TRM:
+      - End-of-conversion
+      - FIFO threshold
+      - Overflow
+      - Error
+
+  clocks:
+    maxItems: 1
+    description: Reference clock for ADC controller.
+
+  clock-names:
+    const: adc_clk
+
+  status:
+    enum: [ "okay", "disabled" ]
+
+required:
+  - compatible
+  - reg
+  - reg-names
+  - interrupts
+  - clocks
+  - clock-names
+
+additionalProperties: false
+
+examples:
+  - |
+    adc0: adc12_0@49020000 {
+        compatible = "alif,adc-dev";
+        reg = <0x49020000 0x100>;
+        reg-names = "adc_base";
+        interrupt-parent = <&gic>;
+        interrupts = <0 140 IRQ_TYPE_LEVEL_HIGH>,
+                     <0 143 IRQ_TYPE_LEVEL_HIGH>,
+                     <0 146 IRQ_TYPE_LEVEL_HIGH>,
+                     <0 149 IRQ_TYPE_LEVEL_HIGH>;
+        clocks = <&psclks ENSEMBLE_ADC120_CLK>;
+        clock-names = "adc_clk";
+        status = "disabled";
+    };
+
+    adc24: adc24@49027000 {
+        compatible = "alif,adc-dev";
+        reg = <0x49027000 0x100>;
+        reg-names = "adc_base";
+        interrupt-parent = <&gic>;
+        interrupts = <0 152 IRQ_TYPE_LEVEL_HIGH>,
+                     <0 153 IRQ_TYPE_LEVEL_HIGH>,
+                     <0 154 IRQ_TYPE_LEVEL_HIGH>,
+                     <0 155 IRQ_TYPE_LEVEL_HIGH>;
+        clocks = <&psclks ENSEMBLE_ADC24_CLK>;
+        clock-names = "adc_clk";
+        status = "disabled";
+    };
