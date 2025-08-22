@@ -27,6 +27,7 @@
 #define ANA_PERIPH_LDO_EN	BIT(23)
 
 #define ADC_VREF_OFFSET      0x1000
+#define ADC_VREF_CONT        BIT(14)
 #define ADC_VREF_BUF_EN      BIT(15)
 #define DAC6_EN		     BIT(20)
 #define DAC6_VREF_SCALE      BIT(27)
@@ -96,7 +97,7 @@ static int ensemble_adc_dac6_probe(struct platform_device *pdev)
 
 	/* Initialize ADC Voltage Reference */
 	val = readl(pdata->adc_vref_regs);
-	val |= ADC_VREF_BUF_EN;
+	val |= (ADC_VREF_BUF_EN | ADC_VREF_CONT);
 	writel(val, pdata->adc_vref_regs);
 
 	/* Wait for voltage stabilization */
@@ -104,7 +105,7 @@ static int ensemble_adc_dac6_probe(struct platform_device *pdev)
 
 	/* Verify ADC VREF enable */
 	val = readl(pdata->adc_vref_regs);
-	if (!(val & ADC_VREF_BUF_EN)) {
+	if (!(val & (ADC_VREF_BUF_EN | ADC_VREF_CONT))) {
 		dev_err(&pdev->dev, "ADC VREF buffer failed to enable\n");
 		ret = -EIO;
 		goto err;

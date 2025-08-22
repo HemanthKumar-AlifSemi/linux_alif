@@ -2051,6 +2051,8 @@ F:	drivers/counter/utimer.c
 F:	drivers/crypto/alif-crc.c
 F:	drivers/dma/alif/*
 F:	drivers/hwspinlock/alif_hwsem.c
+F:	drivers/iio/adc/alif_adc.c
+F:	drivers/iio/adc/alif_temp.h
 F:	drivers/iio/dac/ensemble-dac.c
 F:	drivers/iio/imu/bmi323/bmi323_i3c.c
 F:	drivers/misc/alif-comparator.c
