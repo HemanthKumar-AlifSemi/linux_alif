@@ -210,12 +210,14 @@ static void __init ensemble_clocks_init(struct device_node *ccps_node)
 	hws[ENSEMBLE_SYST_PCLK] = ensemble_clk_hw_fixed_factor("syst_pclk", "syst_aclk", 1, 4);
 	hws[ENSEMBLE_50M_CLK] = ensemble_clk_hw_fixed_factor("50m_clk", "pll_clk1", 1, 16);
 	hws[ENSEMBLE_100M_SCLK] = ensemble_clk_hw_fixed_factor("100m_sclk", "pll_clk1", 1, 8);
-	hws[ENSEMBLE_100M_CLK] = ensemble_clk_hw_gate("100m_clk", "100m_sclk", cgu_base + 0x14, 21);
+	hws[ENSEMBLE_100M_CLK] = ensemble_clk_hw_gate("100m_clk", "100m_sclk", cgu_base + 0x14, 7);
 	hws[ENSEMBLE_HFOSC_CLK] = ensemble_clk_hw_gate("hfosc_clk", "hfxo", cgu_base + 0x14, 23);
-	hws[ENSEMBLE_160M_SCLK] = ensemble_clk_hw_fixed_factor("160m_sclk", "pll_clk3", 1, 3);
+	hws[ENSEMBLE_160M_SCLK] = ensemble_clk_hw_fixed_factor("160m_sclk", "pll_clk1", 1, 5);
 	hws[ENSEMBLE_160M_CLK] = ensemble_clk_hw_gate("160m_clk", "160m_sclk", cgu_base + 0x14, 20);
 	hws[ENSEMBLE_USB_SCLK] = ensemble_clk_hw_fixed_factor("usb_sclk", "pll_clk3", 1, 24);
 	hws[ENSEMBLE_USB_CLK] = ensemble_clk_hw_gate("usb_clk", "usb_sclk", cgu_base + 0x14, 22);
+	hws[ENSEMBLE_266M_SCLK] = ensemble_clk_hw_fixed_factor("266m_sclk", "pll_clk1", 1, 3);
+	hws[ENSEMBLE_266M_CLK] = ensemble_clk_hw_gate("266m_clk", "266m_sclk", cgu_base + 0x14, 21);
 
 	hws[ENSEMBLE_RTC_CLK] = ensemble_clk_hw_fixed_factor("s32k_clk",
 				"pll_clk3", 1, RTC_CLK_DIVIDER);
