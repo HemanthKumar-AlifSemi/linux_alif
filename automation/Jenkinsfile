@@ -11,7 +11,7 @@ pipeline {
                      echo "====> ${CHANGE_BRANCH} ${BRANCH_NAME}"
                      if [ "${BRANCH_NAME}" = "v6.12-dev" ] ; then
                         BRANCH="v6.12-dev"
-                     elif [ "${CHANGE_BRANCH}" != "null" ] ; then
+                     elif [ "${CHANGE_BRANCH}" != "" ] ; then
                         BRANCH="${CHANGE_BRANCH}"
                      else
                         BRANCH="v6.12-dev"
