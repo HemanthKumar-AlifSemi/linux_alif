@@ -373,6 +373,9 @@ static void dw_spi_irq_setup(struct dw_spi *dws)
 
 	dws->transfer_handler = dw_spi_transfer_handler;
 
+	/* Ensure the data above is visible for all CPUs */
+	smp_wmb();
+
 	imask = DW_SPI_INT_TXEI | DW_SPI_INT_TXOI |
 		DW_SPI_INT_RXUI | DW_SPI_INT_RXOI | DW_SPI_INT_RXFI;
 	dw_spi_umask_intr(dws, imask);
