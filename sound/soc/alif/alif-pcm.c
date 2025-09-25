@@ -31,12 +31,19 @@
 #define MODE_FREQ_96K		96000
 #define MODE_FREQ_192K		192000
 
-#define FIFO_WATERMARK_VALUE	0x1
+#define REGISTER_BITS		32
+#define FIFO_WATERMARK_DEFAULT	0x1
+#define FIFO_WATERMARK_HIGH	0x6
+#define PDM_CTL0_DEFAULT	0x0
+#define PDM_CTL1_DEFAULT	(0x1 << BYPASS_IIR_FILTER)
+#define PDM_DEFAULT_MODE	0
+#define PDM_IRQ_ENABLE_DEFAULT	0x0
 #define BYPASS_IIR_FILTER	2
 #define PDM_MODE_POS		16
 #define PDM_MODE_MASK		(0xF << 16)
 #define PDM_CHANNEL_MASK	0xFF
 #define MAX_CHANNELS		8
+#define MIN_CHANNELS		1
 #define CHANNEL_OFFSET		0x100
 #define NUM_COEFFICIENTS	18
 
@@ -67,6 +74,26 @@
 
 #define EVEN_CH_DATA(n)			(n & 0xFFFF)
 #define ODD_CH_DATA(n)			((n >> 16) & 0xFFFF)
+
+#define CHANNEL_0			BIT(0)
+#define CHANNEL_1			BIT(1)
+#define CHANNEL_2			BIT(2)
+#define CHANNEL_3			BIT(3)
+#define CHANNEL_4			BIT(4)
+#define CHANNEL_5			BIT(5)
+#define CHANNEL_6			BIT(6)
+#define CHANNEL_7			BIT(7)
+
+/* PDM Operating Modes (encoded in PDM_CTL0[19:16]) */
+#define PDM_MODE_1_8K				0x1
+#define PDM_MODE_2_16K				0x2
+#define PDM_MODE_3_16K				0x3
+#define PDM_MODE_4_16K				0x4
+#define PDM_MODE_5_32K				0x5
+#define PDM_MODE_6_48K				0x6
+#define PDM_MODE_7_48K				0x7
+#define PDM_MODE_8_96K				0x8
+#define PDM_MODE_9_192K				0x9
 
 static const uint32_t fir_coefficients_even[NUM_COEFFICIENTS] = {
 	0x00000000, 0x000007FF, 0x00000000, 0x00000004, 0x00000004,
@@ -125,10 +152,10 @@ struct alif_pcm_dev {
 };
 
 static const struct reg_default alif_pdm_reg_defaults[] = {
-	{ PDM_CTL0_REG, 0x0 },
-	{ PDM_CTL1_REG, 0x1 << BYPASS_IIR_FILTER },
-	{ PDM_FIFO_WATERMARK_H_REG, FIFO_WATERMARK_VALUE },
-	{ PDM_IRQ_ENABLE_REG, 0x0 },
+	{ PDM_CTL0_REG,	PDM_CTL0_DEFAULT },
+	{ PDM_CTL1_REG,	PDM_CTL1_DEFAULT },
+	{ PDM_FIFO_WATERMARK_H_REG, FIFO_WATERMARK_DEFAULT },
+	{ PDM_IRQ_ENABLE_REG, PDM_IRQ_ENABLE_DEFAULT },
 };
 
 static bool alif_pdm_readable_reg(struct device *dev, unsigned int reg)
@@ -167,8 +194,8 @@ static bool alif_pdm_volatile_reg(struct device *dev, unsigned int reg)
 }
 
 static const struct regmap_config alif_pdm_regmap_config = {
-	.reg_bits = 32,
-	.val_bits = 32,
+	.reg_bits = REGISTER_BITS,
+	.val_bits = REGISTER_BITS,
 	.reg_defaults = alif_pdm_reg_defaults,
 	.num_reg_defaults = ARRAY_SIZE(alif_pdm_reg_defaults),
 	.readable_reg = alif_pdm_readable_reg,
@@ -249,7 +276,7 @@ static ssize_t channelsel_store(struct device *dev,
 	if (kstrtouint(buf, 0, &val))
 		return -EINVAL;
 
-	pdev->channel = val & 0xFF;
+	pdev->channel = val & PDM_CHANNEL_MASK;
 	return count;
 }
 
@@ -260,7 +287,7 @@ static irqreturn_t alif_pcm_irq_handler(int irq, void *dev_id)
 	unsigned int status;
 
 	regmap_read(dev->regmap, PDM_WARNING_IRQ_REG, &status);
-	if (status & BIT(0))
+	if (status & FIFO_FULL_IRQ_EN)
 		return IRQ_WAKE_THREAD;
 
 	return IRQ_NONE;
@@ -293,35 +320,35 @@ static irqreturn_t alif_pcm_irq_thread(int irq, void *dev_id)
 		regmap_read(dev->regmap, PDM_AUDIOOUT_CH4_CH5_REG, &audio_ch45);
 		regmap_read(dev->regmap, PDM_AUDIOOUT_CH6_CH7_REG, &audio_ch67);
 
-		if (dev->channel & BIT(0)) {
+		if (dev->channel & CHANNEL_0) {
 			buffer[dev->pdm_buffer_index++] = EVEN_CH_DATA(audio_ch01);
 			dev->pdm_buffer_index %= buffer_size_bytes / 2;
 		}
-		if (dev->channel & BIT(1)) {
+		if (dev->channel & CHANNEL_1) {
 			buffer[dev->pdm_buffer_index++] = ODD_CH_DATA(audio_ch01);
 			dev->pdm_buffer_index %= buffer_size_bytes / 2;
 		}
-		if (dev->channel & BIT(2)) {
+		if (dev->channel & CHANNEL_2) {
 			buffer[dev->pdm_buffer_index++] = EVEN_CH_DATA(audio_ch23);
 			dev->pdm_buffer_index %= buffer_size_bytes / 2;
 		}
-		if (dev->channel & BIT(3)) {
+		if (dev->channel & CHANNEL_3) {
 			buffer[dev->pdm_buffer_index++] = ODD_CH_DATA(audio_ch23);
 			dev->pdm_buffer_index %= buffer_size_bytes / 2;
 		}
-		if (dev->channel & BIT(4)) {
+		if (dev->channel & CHANNEL_4) {
 			buffer[dev->pdm_buffer_index++] = EVEN_CH_DATA(audio_ch45);
 			dev->pdm_buffer_index %= buffer_size_bytes / 2;
 		}
-		if (dev->channel & BIT(5)) {
+		if (dev->channel & CHANNEL_5) {
 			buffer[dev->pdm_buffer_index++] = ODD_CH_DATA(audio_ch45);
 			dev->pdm_buffer_index %= buffer_size_bytes / 2;
 		}
-		if (dev->channel & BIT(6)) {
+		if (dev->channel & CHANNEL_6) {
 			buffer[dev->pdm_buffer_index++] = EVEN_CH_DATA(audio_ch67);
 			dev->pdm_buffer_index %= buffer_size_bytes / 2;
 		}
-		if (dev->channel & BIT(7)) {
+		if (dev->channel & CHANNEL_7) {
 			buffer[dev->pdm_buffer_index++] = ODD_CH_DATA(audio_ch67);
 			dev->pdm_buffer_index %= buffer_size_bytes / 2;
 		}
@@ -347,14 +374,18 @@ static int alif_pcm_hw_params(struct snd_pcm_substream *substream,
 	unsigned int reg_val;
 	int ret;
 
-	regmap_write(dev->regmap, PDM_CTL1_REG, 0x1 << BYPASS_IIR_FILTER);
-	regmap_write(dev->regmap, PDM_FIFO_WATERMARK_H_REG,
-					FIFO_WATERMARK_VALUE);
+	regmap_write(dev->regmap, PDM_CTL1_REG,	PDM_CTL1_DEFAULT);
+
+	/* Use higher watermark for sample rates >= 96KHz */
+	if (rate >= MODE_FREQ_96K)
+		regmap_write(dev->regmap, PDM_FIFO_WATERMARK_H_REG, FIFO_WATERMARK_HIGH);
+	else
+		regmap_write(dev->regmap, PDM_FIFO_WATERMARK_H_REG, FIFO_WATERMARK_DEFAULT);
 
 	switch (rate) {
 	case MODE_FREQ_8K:
 	{
-		reg_val = 0x1;
+		reg_val = PDM_MODE_1_8K;
 		break;
 	}
 	case MODE_FREQ_16K:
@@ -362,22 +393,22 @@ static int alif_pcm_hw_params(struct snd_pcm_substream *substream,
 		switch (dev->pdm_mode) {
 		case 2:
 		{
-			reg_val = 0x2;
+			reg_val = PDM_MODE_2_16K;
 			break;
 		}
 		case 3:
 		{
-			reg_val = 0x3;
+			reg_val = PDM_MODE_3_16K;
 			break;
 		}
 		case 4:
 		{
-			reg_val = 0x4;
+			reg_val = PDM_MODE_4_16K;
 			break;
 		}
 		default:
 		{
-			reg_val = 0x2;
+			reg_val = PDM_MODE_2_16K;
 			break;
 		}
 		}
@@ -385,7 +416,7 @@ static int alif_pcm_hw_params(struct snd_pcm_substream *substream,
 	}
 	case MODE_FREQ_32K:
 	{
-		reg_val = 0x5;
+		reg_val = PDM_MODE_5_32K;
 		break;
 	}
 	case MODE_FREQ_48K:
@@ -393,17 +424,17 @@ static int alif_pcm_hw_params(struct snd_pcm_substream *substream,
 		switch (dev->pdm_mode) {
 		case 6:
 		{
-			reg_val = 0x6;
+			reg_val = PDM_MODE_6_48K;
 			break;
 		}
 		case 7:
 		{
-			reg_val = 0x7;
+			reg_val = PDM_MODE_7_48K;
 			break;
 		}
 		default:
 		{
-			reg_val = 0x6;
+			reg_val = PDM_MODE_6_48K;
 			break;
 		}
 		}
@@ -411,12 +442,12 @@ static int alif_pcm_hw_params(struct snd_pcm_substream *substream,
 	}
 	case MODE_FREQ_96K:
 	{
-		reg_val = 0x8;
+		reg_val = PDM_MODE_8_96K;
 		break;
 	}
 	case MODE_FREQ_192K:
 	{
-		reg_val = 0x9;
+		reg_val = PDM_MODE_9_192K;
 		break;
 	}
 	default:
@@ -479,7 +510,7 @@ static snd_pcm_uframes_t alif_pcm_pointer(struct snd_soc_component *component,
 static const struct snd_pcm_hardware alif_pcm_hardware = {
 	.info = SNDRV_PCM_INFO_INTERLEAVED | SNDRV_PCM_INFO_NONINTERLEAVED,
 	.formats = SNDRV_PCM_FMTBIT_S16_LE,
-	.channels_min = 1,
+	.channels_min = MIN_CHANNELS,
 	.channels_max = MAX_CHANNELS,
 	.rate_min = MODE_FREQ_8K,
 	.rate_max = MODE_FREQ_192K,
@@ -539,7 +570,7 @@ static struct snd_soc_dai_driver alif_pcm_dai = {
 	.name = "alifpcm",
 	.capture = {
 			.stream_name = "alif-pcm",
-			.channels_min = 1,
+			.channels_min = MIN_CHANNELS,
 			.channels_max = MAX_CHANNELS,
 			.rates = SNDRV_PCM_RATE_8000_192000,
 			.formats = SNDRV_PCM_FMTBIT_S16_LE,
@@ -602,8 +633,8 @@ static int alif_pcm_probe(struct platform_device *pdev)
 		goto err_clk;
 	}
 
-	dev->channel = 0xFF; // Enable all by default
-	dev->pdm_mode = 0;
+	dev->channel = PDM_CHANNEL_MASK;	/* Enable all by default */
+	dev->pdm_mode = PDM_DEFAULT_MODE;
 
 	err = devm_snd_soc_register_component(&pdev->dev,
 	&alif_pcm_component,
