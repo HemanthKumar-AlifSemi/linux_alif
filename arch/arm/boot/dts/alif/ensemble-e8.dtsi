@@ -515,6 +515,7 @@
 			bus-width = <4>;
 			max-frequency = <25000000>;
 			no-hispeed;
+			no-1-8-v;
 			status = "disabled";
 		};
 
