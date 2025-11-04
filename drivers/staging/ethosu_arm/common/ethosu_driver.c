@@ -21,7 +21,9 @@
 #include <direct/config/ethosu_direct_axi_config_driver.h>
 #include <direct/config/ethosu_direct_mem_config_driver.h>
 #include <direct/ethosu_direct_device.h>
+#ifdef CONFIG_ETHOSU_RPMSG
 #include <rpmsg/ethosu_rpmsg_device.h>
+#endif
 #include <uapi/ethosu.h>
 
 #include <linux/bitmap.h>
@@ -181,6 +183,7 @@ static void unregister_direct_platform_drivers(void)
 	ethosu_direct_mem_config_platform_driver_unregister();
 }
 
+#ifdef CONFIG_ETHOSU_RPMSG
 /****************************************************************************
  * Rpmsg driver
  ****************************************************************************/
@@ -230,6 +233,7 @@ static struct rpmsg_driver ethosu_rpmsg_driver = {
 	.callback           = ethosu_rpmsg_cb,
 	.remove             = ethosu_rpmsg_remove,
 };
+#endif /* CONFIG_ETHOSU_RPMSG */
 
 /****************************************************************************
  * Module init and exit
@@ -238,7 +242,9 @@ static struct rpmsg_driver ethosu_rpmsg_driver = {
 static void __exit ethosu_exit(void)
 {
 	unregister_direct_platform_drivers();
+#ifdef CONFIG_ETHOSU_RPMSG
 	unregister_rpmsg_driver(&ethosu_rpmsg_driver);
+#endif
 	unregister_chrdev_region(devt, MINOR_COUNT);
 	class_destroy(ethosu_class);
 }
@@ -261,22 +267,30 @@ static int __init ethosu_init(void)
 		goto destroy_class;
 	}
 
+#ifdef CONFIG_ETHOSU_RPMSG
 	ret = register_rpmsg_driver(&ethosu_rpmsg_driver);
 	if (ret) {
 		pr_err("Failed to register Arm Ethos-U rpmsg driver.\n");
 		goto region_unregister;
 	}
+#endif
 
 	ret = register_direct_platform_drivers();
 	if (ret) {
 		pr_err("Failed to register Arm Ethos-U direct driver.\n");
+#ifdef CONFIG_ETHOSU_RPMSG
 		goto rpmsg_unregister;
+#else
+		goto region_unregister;
+#endif
 	}
 
 	return 0;
 
+#ifdef CONFIG_ETHOSU_RPMSG
 rpmsg_unregister:
 	unregister_rpmsg_driver(&ethosu_rpmsg_driver);
+#endif
 
 region_unregister:
 	unregister_chrdev_region(devt, MINOR_COUNT);

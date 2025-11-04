@@ -19,7 +19,7 @@
 
 ccflags-y += -Werror -I$(src)/include
 
-obj-$(CONFIG_ETHOSU) = ethosu.o
+obj-$(CONFIG_ETHOSU_ARM) = ethosu.o
 
 ethosu-objs := common/ethosu_driver.o \
                common/ethosu_buffer.o \
@@ -27,14 +27,6 @@ ethosu-objs := common/ethosu_driver.o \
                common/ethosu_dma_mem.o \
                common/ethosu_network.o \
                common/ethosu_inference.o \
-               rpmsg/ethosu_rpmsg_cancel_inference.o \
-               rpmsg/ethosu_rpmsg_device.o \
-               rpmsg/ethosu_rpmsg_network.o \
-               rpmsg/ethosu_rpmsg_network_info.o \
-               rpmsg/ethosu_rpmsg_capabilities.o \
-               rpmsg/ethosu_rpmsg_inference.o \
-               rpmsg/ethosu_rpmsg_mailbox.o \
-               rpmsg/ethosu_rpmsg_version.o \
                direct/ethosu_direct_axi_config_driver.o \
                direct/ethosu_direct_cop_2.o \
                direct/ethosu_direct_device.o \
@@ -44,3 +36,13 @@ ethosu-objs := common/ethosu_driver.o \
                direct/ethosu_direct_npu_common.o \
                direct/ethosu_direct_npu_u65.o \
                direct/ethosu_direct_npu_u85.o
+
+# Add RPMSG components only if CONFIG_ETHOSU_RPMSG is enabled
+ethosu-$(CONFIG_ETHOSU_RPMSG) += rpmsg/ethosu_rpmsg_cancel_inference.o \
+                                 rpmsg/ethosu_rpmsg_device.o \
+                                 rpmsg/ethosu_rpmsg_network.o \
+                                 rpmsg/ethosu_rpmsg_network_info.o \
+                                 rpmsg/ethosu_rpmsg_capabilities.o \
+                                 rpmsg/ethosu_rpmsg_inference.o \
+                                 rpmsg/ethosu_rpmsg_mailbox.o \
+                                 rpmsg/ethosu_rpmsg_version.o

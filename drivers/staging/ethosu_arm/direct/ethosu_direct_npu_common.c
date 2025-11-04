@@ -361,13 +361,21 @@ int ethosu_direct_npu_handle_command_stream(
 
 	ethosu_direct_npu_write_reg(edirect_dev, NPU_REG_QBASE,
 				    cmd_addr & 0xFFFFFFFF);
+#ifdef CONFIG_ARCH_DMA_ADDR_T_64BIT
 	ethosu_direct_npu_write_reg(edirect_dev, NPU_REG_QBASE_HI,
 				    cmd_addr >> 32);
+#else
+	ethosu_direct_npu_write_reg(edirect_dev, NPU_REG_QBASE_HI, 0);
+#endif
 	ethosu_direct_npu_write_reg(edirect_dev, NPU_REG_QSIZE, cmd_size);
 
 	for (i = 0; i < num_base_addr; ++i) {
 		const uint32_t addr_lo = base_addrs[i] & 0xFFFFFFFF;
+#ifdef CONFIG_ARCH_DMA_ADDR_T_64BIT
 		const uint32_t addr_hi = base_addrs[i] >> 32;
+#else
+		const uint32_t addr_hi = 0;
+#endif
 		ethosu_direct_npu_write_reg(edirect_dev, bp_offset_lo, addr_lo);
 		ethosu_direct_npu_write_reg(edirect_dev, bp_offset_hi, addr_hi);
 

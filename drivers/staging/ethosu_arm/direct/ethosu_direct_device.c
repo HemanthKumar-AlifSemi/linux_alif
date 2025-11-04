@@ -389,7 +389,7 @@ static const struct ethosu_device_ops direct_ops = {
 
 static const struct ethosu_device_buffer_config buffer_config = {
 	.alignment = 16U,
-	.max_size  = DMA_BIT_MASK(40U),
+	.max_size  = (size_t)DMA_BIT_MASK(40U),
 };
 
 static int ethosu_set_npu_ops(struct platform_device *pdev)
