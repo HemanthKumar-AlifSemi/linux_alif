@@ -1414,8 +1414,9 @@
 
 		adc0: adc12_0@49020000 {
 			compatible = "alif,adc-dev";
-			reg-names = "adc_base";
-			reg = <0x49020000 0x100>;
+			reg-names = "adc_base", "cmp_base";
+			reg = <0x49020000 0x100>,
+				<0x49023000 0x10>;
 			interrupt-parent = <&gic>;
 			interrupts = <0 140 IRQ_TYPE_LEVEL_HIGH>,
 				     <0 143 IRQ_TYPE_LEVEL_HIGH>,
@@ -1456,8 +1457,9 @@
 
 		adc24: adc24@49027000 {
 			compatible = "alif,adc-dev";
-			reg-names = "adc_base";
-			reg = <0x49027000 0x100>;
+			reg-names = "adc_base", "cmp_base";
+			reg = <0x49027000 0x100>,
+				<0x49023000 0x10>;
 			interrupt-parent = <&gic>;
 			interrupts = <0 152 IRQ_TYPE_LEVEL_HIGH>,
 				     <0 153 IRQ_TYPE_LEVEL_HIGH>,
