@@ -386,6 +386,10 @@
 	};
 };
 
+&ethosu_npu {
+	status = ETHOSU_NPU_STATUS;
+};
+
 &pinmux {
 	/*
 	 * syntax:

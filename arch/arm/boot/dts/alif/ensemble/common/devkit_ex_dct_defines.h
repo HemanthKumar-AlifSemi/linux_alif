@@ -126,4 +126,7 @@
 #define MEM_STITCH_STATUS "okay"
 #define MEM_HYPER_STATUS  "disabled"
 #define MEM_HYP_STITCH_STATUS "disabled"
+
+/* Ethosu NPU */
+#define ETHOSU_NPU_STATUS "disabled"
 #endif /* __DEVKIT_DCT_H__ */

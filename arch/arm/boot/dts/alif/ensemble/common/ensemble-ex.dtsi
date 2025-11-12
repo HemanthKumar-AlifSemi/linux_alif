@@ -117,6 +117,26 @@
 		};
 	};
 
+	reserved-memory {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges;
+
+		/* Reserved memory for Ethos-U85 NPU operations - WITHIN HyperRAM */
+		ethosu_reserved: ethosu@a2000000 {
+			compatible = "shared-dma-pool";
+			reg = <0xa2000000 0x1000000>; /* 16MB within HyperRAM */
+			no-map;
+		};
+
+		/* Ethos-U85 dedicated SRAM pool */
+		ethosu_sram: ethosu_sram@a3000000 {
+			compatible = "shared-dma-pool";
+			reg = <0xa3000000 0x60000>; /* 384KB SRAM within HyperRAM */
+			no-map;
+		};
+	};
+
 	refclk: refclk@1a220000 {
 		compatible = "arm,armv7-timer-mem";
 		reg = <0x1a220000  0x1000>;
@@ -1632,6 +1652,36 @@
 			dma-channel-mask = <0x000fffff>;
 			clocks = <&psclks ENSEMBLE_DMA_ENA_CLK>;
 			clock-names = "apb_pclk";
+		};
+
+		/* Ethos-U85 NPU - ARM Driver Stack */
+		ethosu_npu: ethosu@49042000 {
+			#address-cells = <1>;
+			#size-cells = <1>;
+			compatible = "arm,ethosu-direct";
+			reg = <0x49042000 0x2000>;
+			interrupts = <GIC_SPI 355 IRQ_TYPE_LEVEL_HIGH>;
+			interrupt-names = "irq";
+			clocks = <&psclks ENSEMBLE_SYST_ACLK>, <&psclks ENSEMBLE_SYST_PCLK>;
+			clock-names = "core", "apb";
+			memory-region = <&ethosu_reserved>;
+			sram = <&ethosu_sram>;
+			dma-ranges = <0xa2000000 0xa2000000 0x1000000>,
+					<0xa3000000 0xa3000000 0x60000>;
+			region-cfgs = <0 0 0 0 0 0 0 0>;
+			cs-region = <1>;
+			status = "disabled";
+			ethosu_mem_config {
+				compatible = "arm,ethosu-mem-config";
+				/* <beats outstanding_read outstanding_write> */
+				sram = <0 64 32>;
+				ext  = <1 64 32>;
+				/* <mem_domain mem_type axi_port> */
+				configs = <0 0 1>,
+					<0 0 1>,
+					<0 0 1>,
+					<0 0 1>;
+			};
 		};
 	};
 };
