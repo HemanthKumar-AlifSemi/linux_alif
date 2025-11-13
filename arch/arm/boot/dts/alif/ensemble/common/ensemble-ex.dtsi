@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: (GPL-2.0+)
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright (C) 2025 Alif Semiconductor
  */
@@ -359,6 +359,11 @@
 		clock-names = "timer", "pclk";
 	};
 
+	sd_reset: sd-reset {
+		compatible = "alif,sd-reset";
+		reset-gpios = <&port15 7 GPIO_ACTIVE_HIGH>;
+	};
+
 	ahb-b@48100000 {
 		compatible = "simple-bus";
 		#address-cells = <1>;
@@ -471,7 +476,7 @@
 			status = "disabled";
 		};
 
-		eth0: eth@0x48100000 {
+		eth0: eth@48100000 {
 			compatible = "snps,dwc-qos-ethernet-4.10";
 			reg = <0x48100000 0x2000>;
 			clock-names = "phy_ref_clk", "apb_pclk", "ptp_ref";
@@ -494,11 +499,6 @@
 					reg = <0x1>;
 				};
 			};
-		};
-
-		sd_reset: sd-reset {
-			compatible = "alif,sd-reset";
-			reset-gpios = <&port15 7 GPIO_ACTIVE_HIGH>;
 		};
 
 		adc_dac6: adc-dac6@4902a000 {
@@ -581,11 +581,11 @@
 			clock-names = "ahb_clk";
 		};
 
-		hsusb: dwc3-drd {
+		hsusb: dwc3-drd@48200000 {
 			compatible = "alif,ensemble-usb3";
 			#address-cells = <1>;
 			#size-cells = <1>;
-			ranges;
+			ranges = <0x48200000 0x48200000 0x100000>;
 			clock-names = "usb_clk", "dwc_clk";
 			clocks = <&psclks ENSEMBLE_USB_CLK>,
 				<&psclks ENSEMBLE_DWC_USB_CLK>;
@@ -1106,9 +1106,9 @@
 			status = "disabled";
 		};
 
-		uart7: serial@4901F000 {
+		uart7: serial@4901f000 {
 			compatible = "alif,ensemble-dw-uart", "snps,dw-apb-uart";
-			reg = <0x4901F000 0x1000>;
+			reg = <0x4901f000 0x1000>;
 			interrupts = <GIC_SPI 120 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&psclks ENSEMBLE_UART7_CLK>;
 			reg-shift = <2>;
@@ -1234,6 +1234,7 @@
 
 		pcmcard: pcmcard@4902d800 {
 			compatible = "alif,alif-pcm-card";
+			reg = <0x4902d800 0x1000>;
 			clocks = <&psclks ENSEMBLE_SYST_PCLK>;
 		};
 
