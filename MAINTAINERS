@@ -2028,6 +2028,7 @@ F:	arch/arm64/boot/dts/airoha/
 ARM/ALIF SEMICONDUCTOR MACHINE SUPPORT
 M:	Hemanth Kumar <hemanth@alifsemi.com>
 M:	Aravind Krishnan M <aravind.krishnan@alifsemi.com>
+F:	Documentation/devicetree/bindings/arm/alif/alif.yaml
 F:	Documentation/devicetree/bindings/misc/alif,adc-dac6.yaml
 F:	Documentation/devicetree/bindings/counter/alif,alif-utimer.yaml
 F:	Documentation/devicetree/bindings/crypto/alif,alif-crccode.yaml

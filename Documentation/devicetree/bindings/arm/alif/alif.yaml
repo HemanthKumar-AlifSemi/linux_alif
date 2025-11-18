@@ -1,0 +1,30 @@
+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+%YAML 1.2
+---
+$id: http://devicetree.org/schemas/arm/alif/alif.yaml#
+$schema: http://devicetree.org/meta-schemas/core.yaml#
+
+title: Alif Semiconductor Ensemble SoC based Platforms
+
+maintainers:
+  - Hemanth Kumar <hemanth@alifsemi.com>
+
+description: |
+  Boards and devices based on Alif Semiconductor Ensemble SoC family.
+
+  The Alif Ensemble family includes:
+  - Ensemble E6: Single Cortex-A32 core
+  - Ensemble E8: Dual Cortex-A32 cores
+
+  Development platforms:
+  - DevKit: Devkit boards for E6 (unicore) and E8 (dual-core)
+  - AppKit: Appkit boards for E6 (unicore) and E8 (dual-core)
+
+properties:
+  $nodename:
+    const: '/'
+
+  compatible:
+    const: alif,ensemble
+
+additionalProperties: true
