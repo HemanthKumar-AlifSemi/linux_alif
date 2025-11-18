@@ -15,6 +15,10 @@
 		serial0 = &uart4;
 	};
 
+	cpus {
+		/delete-node/ cpu@1;
+	};
+
 	reg_3p3v: reg3p3v {
 		compatible = "regulator-fixed";
 		regulator-name = "fixed-3.3V";
@@ -68,10 +72,6 @@
 		};
 	};
 
-};
-
-&cpu1 {
-	status = CPU1_STATUS;
 };
 
 &mem_stitch {

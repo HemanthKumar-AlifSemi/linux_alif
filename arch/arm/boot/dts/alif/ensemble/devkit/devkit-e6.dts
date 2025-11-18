@@ -130,7 +130,7 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c0>;
 	status = I2C0_STATUS;
-	bme680@76{
+	bme680@76 {
 		compatible = "bosch,bme680";
 		reg = <0x76>;
 	};
@@ -212,7 +212,7 @@
 	status = SPI3_STATUS;
 	bme680@0 {
 		compatible = "bosch,bme680";
-		spi-max-frequency= <1000000>;
+		spi-max-frequency = <1000000>;
 		reg = <0>;
 	};
 
@@ -640,7 +640,7 @@
 	};
 	pinctrl_sd_reset: sd_resetgrp {
 		pinmux = <
-			PIN_P14_7__GPIO		0x23 /* sd reset line*/
+			PIN_P14_7__GPIO		0x23 /* sd reset line */
 		>;
 	};
 	pinctrl_sdhci: sdhci0grp {
