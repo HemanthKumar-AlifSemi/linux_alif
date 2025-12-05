@@ -67,9 +67,42 @@ static long hwsem_ioctl(struct file *f,
 	case HWSEM_UNLOCK:
 		spin_lock(&drvdata->lock);
 		writel(MASTER_ID, drvdata->hwsem_base + HWSEM_REL_OFFSET);
+		/*
+		 * Read count before releasing to avoid race condition.
+		 * If count is 1 (or less), it means this unlock will free it completely.
+		 */
+		if (readl(drvdata->hwsem_base + HWSEM_REL_OFFSET) == 0)
+			drvdata->pid = -1;
 		spin_unlock(&drvdata->lock);
 		break;
 	case HWSEM_LOCK:
+		spin_lock(&drvdata->lock);
+		/*
+		 * On first acquisition of semaphore, the process goes through the
+		 * wait_event_interruptible() path in the while loop then sets pid
+		 * under the spinlock.
+		 * Below is the recursive lock condition and acquisition.
+		 */
+		if (drvdata->pid == current->tgid) {
+			u32 count_before, count_after;
+
+			/* Recursive lock: increment hardware count */
+			/* HWSEM_REL_OFFSET is used to read the current lock count */
+			count_before = readl(drvdata->hwsem_base + HWSEM_REL_OFFSET);
+			writel(MASTER_ID, drvdata->hwsem_base + HWSEM_ACQ_OFFSET);
+			count_after = readl(drvdata->hwsem_base + HWSEM_REL_OFFSET);
+
+			/* Verify that the lock was actually acquired/incremented */
+			if (count_after != count_before + 1) {
+				dev_err(drvdata->dev, "Recursive lock failed to increment count\n");
+				spin_unlock(&drvdata->lock);
+				return -EIO;
+			}
+			spin_unlock(&drvdata->lock);
+			return 0;
+		}
+		spin_unlock(&drvdata->lock);
+
 		if (__test_and_clear_bit(HWSEM_IRQ_DISABLED, &drvdata->flags)) {
 			enable_irq(drvdata->irq);
 			synchronize_irq(drvdata->irq);
@@ -82,14 +115,26 @@ static long hwsem_ioctl(struct file *f,
 			 *      the current process.
 			 */
 			if (wait_event_interruptible(drvdata->waitq,
-			((drvdata->ready &&
-				!readl(drvdata->hwsem_base + HWSEM_REL_OFFSET))
-			|| (!drvdata->ready &&
-				(drvdata->pid == current->tgid))))) {
-				pr_info("Process waiting for HWSEM lock was interrupted\n");
+				(drvdata->ready &&
+				!readl(drvdata->hwsem_base + HWSEM_REL_OFFSET)))) {
+				dev_info(drvdata->dev, "Process waiting for HWSEM lock was interrupted\n");
 				return -1;
 			}
 			spin_lock(&drvdata->lock);
+
+			/*
+			 * Race condition check (TOCTOU):
+			 * Another process might have acquired the lock between
+			 * wait_event returning and us acquiring the spinlock.
+			 * Re-check if it's still free.
+			 * Note: ready flag is cleared to false after successful acquisition below.
+			 */
+			if (!drvdata->ready || readl(drvdata->hwsem_base + HWSEM_REL_OFFSET) != 0) {
+				spin_unlock(&drvdata->lock);
+				continue;
+			}
+
+			/* First acquisition by this process */
 			drvdata->pid = current->tgid;
 			writel(MASTER_ID,
 				drvdata->hwsem_base + HWSEM_ACQ_OFFSET);
