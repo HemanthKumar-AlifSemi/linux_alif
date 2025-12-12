@@ -29,6 +29,7 @@
 #include <linux/miscdevice.h>
 #include <linux/uaccess.h>
 
+#define ARM_CHANNEL_NAME_MAX	32
 #define RPMSG_NAME	"arm_rpmsg"
 #define RPMSG_ADDR_ANY	0xFFFFFFFF
 
@@ -36,6 +37,7 @@ struct arm_channel {
 	struct rpmsg_endpoint ept;
 	struct mbox_client cl;
 	struct mbox_chan *mbox;
+	char name[ARM_CHANNEL_NAME_MAX];
 };
 
 #define RPMSG_IOCTL_MAGIC  'k'
@@ -48,11 +50,63 @@ struct arm_channel {
 
 static atomic_t kernel_value = ATOMIC_INIT(0);
 
+/*
+ * is_m55_channel() - Check if channel is M55 HP/HE endpoint
+ * @name: Channel name to check
+ *
+ * M55 HP/HE channels (rxdb0-3) require data dereferencing from the
+ * arm_mhuv2_mbox_msg structure. Other channels use legacy behavior.
+ *
+ * Return: true if M55 channel, false otherwise
+ */
+static bool is_m55_channel(const char *name)
+{
+	static const char * const m55_channels[] = {
+		"rxdb0", "rxdb1", "rxdb2", "rxdb3"
+	};
+	int i;
+
+	for (i = 0; i < ARRAY_SIZE(m55_channels); i++) {
+		if (!strcmp(name, m55_channels[i]))
+			return true;
+	}
+	return false;
+}
+
 static void arm_msg_rx_handler(struct mbox_client *cl, void *mssg)
 {
 	struct arm_channel *channel = arm_channel_from_mbox(cl);
-	int err = channel->ept.cb(channel->ept.rpdev, mssg, 4, channel->ept.priv, RPMSG_ADDR_ANY);
+	int err;
 
+	/*
+	 * For M55 HP/HE channels (rxdb0-3), the mssg parameter is a pointer
+	 * to struct arm_mhuv2_mbox_msg. We must dereference msg->data to get
+	 * the actual payload. For SE channels (rxdb4-5), maintain legacy
+	 * behavior by passing the pointer directly for backward compatibility.
+	 */
+	if (is_m55_channel(channel->name)) {
+		struct arm_mhuv2_mbox_msg *msg = mssg;
+		u32 data;
+
+		/* Validate message pointer before dereferencing */
+		if (!msg) {
+			pr_err("ARM Mailbox: NULL message pointer (channel: %s)\n", channel->name);
+			return;
+		}
+		if (!msg->data) {
+			pr_err("ARM Mailbox: NULL message data pointer (channel: %s)\n",
+			       channel->name);
+			return;
+		}
+
+		data = *(u32 *)msg->data;
+		err = channel->ept.cb(channel->ept.rpdev, &data, 4,
+				channel->ept.priv, RPMSG_ADDR_ANY);
+	} else {
+		/* Legacy behavior for SE and other endpoints */
+		err = channel->ept.cb(channel->ept.rpdev, mssg, 4,
+				channel->ept.priv, RPMSG_ADDR_ANY);
+	}
 	if (err)
 		pr_err("ARM Mailbox: Endpoint callback failed with error: %d", err);
 }
@@ -120,6 +174,9 @@ static struct rpmsg_endpoint *arm_create_ept(struct rpmsg_device *rpdev,
 		pr_err("RPMsg ARM: Cannot get channel by name: '%s'\n", chinfo.name);
 		return NULL;
 	}
+
+	/* Store the name for protocol differentiation in rx_handler */
+	strscpy(channel->name, chinfo.name, sizeof(channel->name));
 
 	return &channel->ept;
 }
