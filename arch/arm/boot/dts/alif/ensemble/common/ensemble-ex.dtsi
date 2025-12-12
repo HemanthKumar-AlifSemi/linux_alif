@@ -353,7 +353,7 @@
 		mbox-names = "txdb0", "txdb1",
 			     "rxdb0", "rxdb1",
 			     "txdb2", "txdb3",
-			     "rxdb2", "rxdb2",
+			     "rxdb2", "rxdb3",
 			     "txdb4", "txdb5",
 			     "rxdb4", "rxdb5";
 		mboxes =  <&mbox_m55_hp_mhu0_tx 0 0>,
