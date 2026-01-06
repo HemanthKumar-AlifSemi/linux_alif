@@ -2047,6 +2047,7 @@ F:	Documentation/devicetree/bindings/sound/invensense,t5848.yaml
 F:	Documentation/devicetree/bindings/usb/alif,ensemble-usb3.yaml
 F:	arch/arm/boot/dts/alif/ensemble/
 F:	arch/arm/configs/appkit_e6_defconfig
+F:	arch/arm/configs/appkit_e8_defconfig
 F:	arch/arm/mach-ensemble/adc_dac6.c
 F:	arch/arm/mach-ensemble/sdhci-alif-reset.c
 F:	drivers/counter/register_offsets.h
