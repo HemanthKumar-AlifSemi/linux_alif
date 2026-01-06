@@ -130,7 +130,7 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c0>;
 	status = I2C0_STATUS;
-	bme680@76{
+	bme680@76 {
 		compatible = "bosch,bme680";
 		reg = <0x76>;
 	};
@@ -164,30 +164,6 @@
 	status = ETH_STATUS;
 };
 
-&adc0 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_adc120>;
-	status = ADC120_STATUS;
-};
-
-&adc1 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_adc121>;
-	status = ADC121_STATUS;
-};
-
-&adc2 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_adc122>;
-	status = ADC122_STATUS;
-};
-
-&adc24 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_adc24>;
-	status = ADC24_STATUS;
-};
-
 &spi0 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_spi0>;
@@ -212,42 +188,10 @@
 	status = SPI3_STATUS;
 	bme680@0 {
 		compatible = "bosch,bme680";
-		spi-max-frequency= <1000000>;
+		spi-max-frequency = <1000000>;
 		reg = <0>;
 	};
 
-};
-
-&cmp0 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_cmp0>;
-	status = CMP0_STATUS;
-};
-
-&cmp1 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_cmp1>;
-	status = CMP1_STATUS;
-};
-
-&cmp2 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_cmp2>;
-	status = CMP2_STATUS;
-};
-
-&cmp3 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_cmp3>;
-	status = CMP3_STATUS;
-};
-
-&dac0 {
-	status = DAC120_STATUS;
-};
-
-&dac1 {
-	status = DAC121_STATUS;
 };
 
 &hwsem0 {
@@ -384,6 +328,10 @@
 		assigned-address = <0xa>;
 		status = "okay";
 	};
+};
+
+&ethosu_npu {
+	status = ETHOSU_NPU_STATUS;
 };
 
 &pinmux {
@@ -553,40 +501,6 @@
 		>;
 	};
 
-	pinctrl_adc120: adc120grp {
-		pinmux = <
-			PIN_P0_0__ANA_S0        0x23
-			PIN_P0_1__ANA_S1        0x23
-			PIN_P0_2__ANA_S2        0x23
-			PIN_P0_3__ANA_S3        0x23
-			PIN_P0_4__ANA_S4        0x23
-			PIN_P0_5__ANA_S5        0x23
-		>;
-	};
-	pinctrl_adc121: adc121grp {
-		pinmux = <
-			PIN_P0_6__ANA_S6        0x23
-			PIN_P1_2__ANA_S10       0x23
-			PIN_P1_3__ANA_S11       0x23
-		>;
-	};
-	pinctrl_adc122: adc122grp {
-		pinmux = <
-			PIN_P1_4__ANA_S12       0x23
-		>;
-	};
-	pinctrl_adc24: adc24grp {
-		pinmux = <
-			PIN_P0_0__ANA_S0        0x23
-			PIN_P0_1__ANA_S1        0x23
-			PIN_P0_2__ANA_S2        0x23
-			PIN_P0_3__ANA_S3        0x23
-			PIN_P0_4__ANA_S4        0x23
-			PIN_P0_5__ANA_S5        0x23
-			PIN_P0_6__ANA_S6        0x23
-			PIN_P0_7__ANA_S7        0x23
-		>;
-	};
 	pinctrl_spi0: spi0grp {
 		pinmux = <
 			PIN_P5_2__SPI0_SS0_B	0x23
@@ -611,36 +525,9 @@
 			PIN_P12_5__SPI3_MOSI_A	0x0
 		>;
 	};
-	pinctrl_cmp0: cmp0grp {
-		pinmux = <
-			PIN_P0_0__ANA_S0        0x23
-			PIN_P0_6__ANA_S6        0x23
-		>;
-	};
-	pinctrl_cmp1: cmp1grp {
-		pinmux = <
-			PIN_P0_1__ANA_S1        0x23
-			PIN_P0_5__ANA_S5        0x23
-			PIN_P0_7__ANA_S7        0x23
-			PIN_P1_5__ANA_S13       0x23
-		>;
-	};
-	pinctrl_cmp2: cmp2grp {
-		pinmux = <
-			PIN_P0_2__ANA_S2        0x23
-			PIN_P1_2__ANA_S10       0x23
-		>;
-	};
-	pinctrl_cmp3: cmp3grp {
-		pinmux = <
-		PIN_P0_3__ANA_S3        0x23
-		PIN_P1_3__ANA_S11       0x23
-		PIN_P1_7__ANA_S15       0x23
-		>;
-	};
 	pinctrl_sd_reset: sd_resetgrp {
 		pinmux = <
-			PIN_P14_7__GPIO		0x23 /* sd reset line*/
+			PIN_P14_7__GPIO		0x23 /* sd reset line */
 		>;
 	};
 	pinctrl_sdhci: sdhci0grp {
