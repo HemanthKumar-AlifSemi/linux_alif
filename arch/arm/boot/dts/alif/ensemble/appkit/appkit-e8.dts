@@ -15,28 +15,28 @@
 		serial0 = &uart4;
 	};
 
-	reg_3p3v: reg3p3v {
+	reg_3p3v: regulator-3v3 {
 		compatible = "regulator-fixed";
 		regulator-name = "fixed-3.3V";
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
 		regulator-always-on;
 	};
-	reg_2p7v: reg27 {
+	reg_2p7v: regulator-2v7 {
 		compatible = "regulator-fixed";
 		regulator-name = "fixed-2.7V";
 		regulator-min-microvolt = <2700000>;
 		regulator-max-microvolt = <2700000>;
 		regulator-always-on;
 	};
-	reg_1p8v: reg18 {
+	reg_1p8v: regulator-1v8 {
 		compatible = "regulator-fixed";
 		regulator-name = "fixed-1.8V";
 		regulator-min-microvolt = <1800000>;
 		regulator-max-microvolt = <1800000>;
 		regulator-always-on;
 	};
-	reg_1p2v: reg12 {
+	reg_1p2v: regulator-1v2 {
 		compatible = "regulator-fixed";
 		regulator-name = "fixed-1.2V";
 		regulator-min-microvolt = <1200000>;
@@ -50,7 +50,7 @@
 		rootfstype=cramfs ro loglevel=9";
 	};
 
-	sound-wm8904 {
+	sound {
 		compatible = "simple-audio-card";
 		simple-audio-card,name = "wm8904-audio";
 		simple-audio-card,format = "i2s";
@@ -92,7 +92,7 @@
 
 &hsusb {
 	status = HSUSB_STATUS;
-	usbdual_hs: usb-dual@48200000 {
+	dwc3: usb@48200000 {
 		status = HSUSB_STATUS;
 	};
 };
@@ -130,10 +130,6 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c0>;
 	status = I2C0_STATUS;
-	bme680@76 {
-		compatible = "bosch,bme680";
-		reg = <0x76>;
-	};
 };
 
 &i2c1 {
@@ -142,7 +138,7 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c1>;
 	status = I2C1_STATUS;
-	wm8904: wm8904@1a {
+	wm8904: codec@1a {
 		compatible = "wlf,wm8904";
 		reg = <0x1a>;
 		#sound-dai-cells = <0>;
@@ -186,12 +182,6 @@
 	#size-cells = <0>;
 	cs-gpios = <&port13 7 0>;
 	status = SPI3_STATUS;
-	bme680@0 {
-		compatible = "bosch,bme680";
-		spi-max-frequency = <1000000>;
-		reg = <0>;
-	};
-
 };
 
 &hwsem0 {

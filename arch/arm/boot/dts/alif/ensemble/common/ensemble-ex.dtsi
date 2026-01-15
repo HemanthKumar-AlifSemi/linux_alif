@@ -40,7 +40,7 @@
 		method = "smc";
 	};
 
-	mem_stitch: mem_stitch@2000000 {
+	mem_stitch: memory1@2000000 {
 		device_type = "memory";
 		reg = <0x02000000 0x7DE000>;
 		status = "disabled";
@@ -48,7 +48,7 @@
 			/* 0x1000 @ 0x027FE000 reserved for MHU services */
 	};
 
-	mem_hyperam: mem_hyperam@a0000000 {
+	mem_hyperam: memory@a0000000 {
 		device_type = "memory";
 		reg = <0xa0000000 0x4000000>;
 		status = "disabled";
@@ -56,7 +56,7 @@
 			/* 0x1000 @ 0x027FE000 reserved for MHU services */
 	};
 
-	mem_hyp_stitch: mem_hyp_stitch@2000000 {
+	mem_hyp_stitch: memory2@2000000 {
 		device_type = "memory";
 		reg = <0x02000000 0x7DE000>,
 			<0x20000000 0x4000000>;
@@ -137,7 +137,7 @@
 		};
 	};
 
-	refclk: refclk@1a220000 {
+	refclk: timer@1a220000 {
 		compatible = "arm,armv7-timer-mem";
 		reg = <0x1a220000  0x1000>;
 		clock-frequency = <100000000>;
@@ -201,7 +201,7 @@
 		};
 	};
 
-	mbox_m55_hp_mhu0_tx: mhu@1b000000 {
+	mbox_m55_hp_mhu0_tx: mailbox@1b000000 {
 		compatible = "arm,mhuv2-tx","arm,primecell";
 		reg = <0x1b000000 0x1000>;
 		clocks = <&psclks ENSEMBLE_SYST_ACLK>;
@@ -213,7 +213,7 @@
 		mbox-name = "arm-m55_hp-mhu0_tx";
 		status = "disabled";
 	};
-	mbox_m55_hp_mhu1_tx: mhu@1b020000 {
+	mbox_m55_hp_mhu1_tx: mailbox@1b020000 {
 		compatible = "arm,mhuv2-tx","arm,primecell";
 		reg = <0x1b020000 0x1000>;
 		clocks = <&psclks ENSEMBLE_SYST_ACLK>;
@@ -225,7 +225,7 @@
 		mbox-name = "arm-m55_hp-mhu1_tx";
 		status = "disabled";
 	};
-	mbox_m55_hp_mhu0_rx: mhu@1b010000 {
+	mbox_m55_hp_mhu0_rx: mailbox@1b010000 {
 		compatible = "arm,mhuv2-rx","arm,primecell";
 		reg = <0x1b010000 0x1000>;
 		clocks = <&psclks ENSEMBLE_SYST_ACLK>;
@@ -237,7 +237,7 @@
 		mbox-name = "arm-m55_hp-mhu0_rx";
 		status = "disabled";
 	};
-	mbox_m55_hp_mhu1_rx: mhu@1b030000 {
+	mbox_m55_hp_mhu1_rx: mailbox@1b030000 {
 		compatible = "arm,mhuv2-rx","arm,primecell";
 		reg = <0x1b030000 0x1000>;
 		clocks = <&psclks ENSEMBLE_SYST_ACLK>;
@@ -250,7 +250,7 @@
 		status = "disabled";
 	};
 
-	mbox_m55_he_mhu0_tx: mhu@1b040000 {
+	mbox_m55_he_mhu0_tx: mailbox@1b040000 {
 		compatible = "arm,mhuv2-tx","arm,primecell";
 		reg = <0x1b040000 0x1000>;
 		clocks = <&psclks ENSEMBLE_SYST_ACLK>;
@@ -262,7 +262,7 @@
 		mbox-name = "arm-m55_he-mhu0_tx";
 		status = "disabled";
 	};
-	mbox_m55_he_mhu1_tx: mhu@1b060000 {
+	mbox_m55_he_mhu1_tx: mailbox@1b060000 {
 		compatible = "arm,mhuv2-tx","arm,primecell";
 		reg = <0x1b060000 0x1000>;
 		clocks = <&psclks ENSEMBLE_SYST_ACLK>;
@@ -274,7 +274,7 @@
 		mbox-name = "arm-m55_he-mhu1_tx";
 		status = "disabled";
 	};
-	mbox_m55_he_mhu0_rx: mhu@1b050000 {
+	mbox_m55_he_mhu0_rx: mailbox@1b050000 {
 		compatible = "arm,mhuv2-rx","arm,primecell";
 		reg = <0x1b050000 0x1000>;
 		clocks = <&psclks ENSEMBLE_SYST_ACLK>;
@@ -286,7 +286,7 @@
 		mbox-name = "arm-m55_he-mhu0_rx";
 		status = "disabled";
 	};
-	mbox_m55_he_mhu1_rx: mhu@1b070000 {
+	mbox_m55_he_mhu1_rx: mailbox@1b070000 {
 		compatible = "arm,mhuv2-rx","arm,primecell";
 		reg = <0x1b070000 0x1000>;
 		clocks = <&psclks ENSEMBLE_SYST_ACLK>;
@@ -298,7 +298,7 @@
 		mbox-name = "arm-m55_he-mhu1_rx";
 		status = "disabled";
 	};
-	mbox_se_mhu0_tx: mhu@1b800000 {
+	mbox_se_mhu0_tx: mailbox@1b800000 {
 		#mbox-cells = <2>;
 		compatible = "arm,mhuv2-tx","arm,primecell";
 		reg = <0x1b800000 0x1000>;
@@ -311,7 +311,7 @@
 		status = "disabled";
 	};
 
-	mbox_se_mhu1_tx: mhu@1b820000 {
+	mbox_se_mhu1_tx: mailbox@1b820000 {
 		compatible = "arm,mhuv2-tx","arm,primecell";
 		reg = <0x1b820000 0x1000>;
 		clocks = <&psclks ENSEMBLE_SYST_ACLK>;
@@ -323,7 +323,7 @@
 		mbox-name = "arm-se-mhu1_tx";
 		status = "disabled";
 	};
-	mbox_se_mhu0_rx: mhu@1b810000 {
+	mbox_se_mhu0_rx: mailbox@1b810000 {
 		#mbox-cells = <2>;
 		compatible = "arm,mhuv2-rx","arm,primecell";
 		reg = <0x1b810000 0x1000>;
@@ -335,7 +335,7 @@
 		mbox-name = "arm-se-mhu0_rx";
 		status = "disabled";
 	};
-	mbox_se_mhu1_rx: mhu@1b830000 {
+	mbox_se_mhu1_rx: mailbox@1b830000 {
 		compatible = "arm,mhuv2-rx","arm,primecell";
 		reg = <0x1b830000 0x1000>;
 		clocks = <&psclks ENSEMBLE_SYST_ACLK>;
@@ -391,7 +391,7 @@
 		reg = <0x48100000 0x00200000>;
 		ranges = <>;
 
-		utimer: utimer@48000000 {
+		utimer: timer@48000000 {
 			compatible = "alif,alif-utimer";
 			clocks = <&psclks ENSEMBLE_SYST_ACLK>;
 			clock-names = "axi_clk" ;
@@ -496,7 +496,7 @@
 			status = "disabled";
 		};
 
-		eth0: eth@48100000 {
+		eth0: ethernet@48100000 {
 			compatible = "snps,dwc-qos-ethernet-4.10";
 			reg = <0x48100000 0x2000>;
 			clock-names = "phy_ref_clk", "apb_pclk", "ptp_ref";
@@ -521,12 +521,12 @@
 			};
 		};
 
-		adc_dac6: adc-dac6@4902a000 {
+		adc_dac6: analog@4902a000 {
 			compatible = "alif,adc-dac6";
 			reg = <0x4902a000 0x2000>;
 		};
 
-		sdmmc: sdhci@48102000 {
+		sdmmc: mmc@48102000 {
 			compatible = "snps,dwcmshc-sdhci";
 			reg = <0x48102000 0x1000>;
 			interrupts = <GIC_SPI 27 IRQ_TYPE_LEVEL_HIGH>,
@@ -601,7 +601,7 @@
 			clock-names = "ahb_clk";
 		};
 
-		hsusb: dwc3-drd@48200000 {
+		hsusb: dwc3@48200000 {
 			compatible = "alif,ensemble-usb3";
 			#address-cells = <1>;
 			#size-cells = <1>;
@@ -610,7 +610,7 @@
 			clocks = <&psclks ENSEMBLE_USB_CLK>,
 				<&psclks ENSEMBLE_DWC_USB_CLK>;
 			status = "disabled";
-			usbdual_hs: usb-dual@48200000 {
+			dwc3: usb@48200000 {
 				compatible = "snps","snps,dwc3";
 				reg = <0x48200000 0x100000>;
 				interrupts = <GIC_SPI 26 IRQ_TYPE_LEVEL_HIGH>;
@@ -1184,7 +1184,7 @@
 			status = "disabled";
 		};
 
-		i2s0: i2s0@49014000 {
+		i2s0: i2s@49014000 {
 			compatible = "snps,designware-i2s";
 			reg = <0x49014000 0x1000>;
 			clocks = <&psclks ENSEMBLE_I2S0_CLK>,
@@ -1195,7 +1195,7 @@
 			status = "disabled";
 		};
 
-		i2s1: i2s1@49015000 {
+		i2s1: i2s@49015000 {
 			compatible = "snps,designware-i2s";
 			reg = <0x49015000 0x1000>;
 			clocks = <&psclks ENSEMBLE_I2S1_CLK>,
@@ -1206,7 +1206,7 @@
 			status = "disabled";
 		};
 
-		i2s2: i2s2@49016000 {
+		i2s2: i2s@49016000 {
 			compatible = "snps,designware-i2s";
 			reg = <0x49016000 0x1000>;
 			clocks = <&psclks ENSEMBLE_I2S2_CLK>,
@@ -1217,7 +1217,7 @@
 			status = "disabled";
 		};
 
-		i2s3: i2s3@49017000 {
+		i2s3: i2s@49017000 {
 			compatible = "snps,designware-i2s";
 			reg = <0x49017000 0x1000>;
 			clocks = <&psclks ENSEMBLE_I2S3_CLK>,
@@ -1241,7 +1241,7 @@
 		ranges = <>;
 
 
-		pdm0: pdm@4902d000 {
+		pdm0: sound@4902d000 {
 			compatible = "alif,alif-pcm";
 			reg = <0x4902d000 0x1000>;
 			clocks = <&psclks ENSEMBLE_SYST_PCLK>,
@@ -1252,13 +1252,13 @@
 			status = "disabled";
 		};
 
-		pcmcard: pcmcard@4902d800 {
+		pcmcard: audio-codec@4902d800 {
 			compatible = "alif,alif-pcm-card";
 			reg = <0x4902d800 0x1000>;
 			clocks = <&psclks ENSEMBLE_SYST_PCLK>;
 		};
 
-		hwsem0: hwsem0@4902e000 {
+		hwsem0: hwlock@4902e000 {
 			compatible = "alif,hwsem";
 			reg = <0x4902e000 0x4>;
 			reg-names = "hwsem_base";
@@ -1269,7 +1269,7 @@
 			status = "disabled";
 		};
 
-		hwsem1: hwsem1@4902e010 {
+		hwsem1: hwlock@4902e010 {
 			compatible = "alif,hwsem";
 			reg = <0x4902e010 0x4>;
 			reg-names = "hwsem_base";
@@ -1280,7 +1280,7 @@
 			status = "disabled";
 		};
 
-		hwsem2: hwsem2@4902e020 {
+		hwsem2: hwlock@4902e020 {
 			compatible = "alif,hwsem";
 			reg = <0x4902e020 0x4>;
 			reg-names = "hwsem_base";
@@ -1290,7 +1290,7 @@
 			clock-names = "syst_pclk" ;
 			status = "disabled";
 		};
-		hwsem3: hwsem3@4902e030 {
+		hwsem3: hwlock@4902e030 {
 			compatible = "alif,hwsem";
 			reg = <0x4902e030 0x4>;
 			reg-names = "hwsem_base";
@@ -1301,7 +1301,7 @@
 			status = "disabled";
 		};
 
-		hwsem4: hwsem4@4902e040 {
+		hwsem4: hwlock@4902e040 {
 			compatible = "alif,hwsem";
 			reg = <0x4902e040 0x4>;
 			reg-names = "hwsem_base";
@@ -1312,7 +1312,7 @@
 			status = "disabled";
 		};
 
-		hwsem5: hwsem5@4902e050 {
+		hwsem5: hwlock@4902e050 {
 			compatible = "alif,hwsem";
 			reg = <0x4902e050 0x4>;
 			reg-names = "hwsem_base";
@@ -1323,7 +1323,7 @@
 			status = "disabled";
 		};
 
-		hwsem6: hwsem6@4902e060 {
+		hwsem6: hwlock@4902e060 {
 			compatible = "alif,hwsem";
 			reg = <0x4902e060 0x4>;
 			reg-names = "hwsem_base";
@@ -1334,7 +1334,7 @@
 			status = "disabled";
 		};
 
-		hwsem7: hwsem7@4902e070 {
+		hwsem7: hwlock@4902e070 {
 			compatible = "alif,hwsem";
 			reg = <0x4902e070 0x4>;
 			reg-names = "hwsem_base";
@@ -1345,7 +1345,7 @@
 			status = "disabled";
 		};
 
-		hwsem8: hwsem8@4902e080 {
+		hwsem8: hwlock@4902e080 {
 			compatible = "alif,hwsem";
 			reg = <0x4902e080 0x4>;
 			reg-names = "hwsem_base";
@@ -1356,7 +1356,7 @@
 			status = "disabled";
 		};
 
-		hwsem9: hwsem9@4902e090 {
+		hwsem9: hwlock@4902e090 {
 			compatible = "alif,hwsem";
 			reg = <0x4902e090 0x4>;
 			reg-names = "hwsem_base";
@@ -1367,7 +1367,7 @@
 			status = "disabled";
 		};
 
-		hwsem10: hwsem10@4902e0a0 {
+		hwsem10: hwlock@4902e0a0 {
 			compatible = "alif,hwsem";
 			reg = <0x4902e0a0 0x4>;
 			reg-names = "hwsem_base";
@@ -1378,7 +1378,7 @@
 			status = "disabled";
 		};
 
-		hwsem11: hwsem11@4902e0b0 {
+		hwsem11: hwlock@4902e0b0 {
 			compatible = "alif,hwsem";
 			reg = <0x4902e0b0 0x4>;
 			reg-names = "hwsem_base";
@@ -1389,7 +1389,7 @@
 			status = "disabled";
 		};
 
-		hwsem12: hwsem12@4902e0c0 {
+		hwsem12: hwlock@4902e0c0 {
 			compatible = "alif,hwsem";
 			reg = <0x4902e0c0 0x4>;
 			reg-names = "hwsem_base";
@@ -1400,7 +1400,7 @@
 			status = "disabled";
 		};
 
-		hwsem13: hwsem13@4902e0d0 {
+		hwsem13: hwlock@4902e0d0 {
 			compatible = "alif,hwsem";
 			reg = <0x4902e0d0 0x4>;
 			reg-names = "hwsem_base";
@@ -1411,7 +1411,7 @@
 			status = "disabled";
 		};
 
-		hwsem14: hwsem14@4902e0e0 {
+		hwsem14: hwlock@4902e0e0 {
 			compatible = "alif,hwsem";
 			reg = <0x4902e0e0 0x4>;
 			reg-names = "hwsem_base";
@@ -1422,7 +1422,7 @@
 			status = "disabled";
 		};
 
-		hwsem15: hwsem15@4902e0f0 {
+		hwsem15: hwlock@4902e0f0 {
 			compatible = "alif,hwsem";
 			reg = <0x4902e0f0 0x4>;
 			reg-names = "hwsem_base";
@@ -1433,7 +1433,7 @@
 			status = "disabled";
 		};
 
-		adc0: adc12_0@49020000 {
+		adc12_0: adc@49020000 {
 			compatible = "alif,adc-dev";
 			reg-names = "adc_base", "cmp_base";
 			reg = <0x49020000 0x100>,
@@ -1448,7 +1448,7 @@
 			status = "disabled";
 		};
 
-		adc1: adc12_1@49021000 {
+		adc12_1: adc@49021000 {
 			compatible = "alif,adc-dev";
 			reg-names = "adc_base";
 			reg = <0x49021000 0x100>;
@@ -1462,7 +1462,7 @@
 			status = "disabled";
 		};
 
-		adc2: adc12_2@49022000 {
+		adc12_2: adc@49022000 {
 			compatible = "alif,adc-dev";
 			reg-names = "adc_base";
 			reg = <0x49022000 0x100>;
@@ -1476,7 +1476,7 @@
 			status = "disabled";
 		};
 
-		adc24: adc24@49027000 {
+		adc24: adc@49027000 {
 			compatible = "alif,adc-dev";
 			reg-names = "adc_base", "cmp_base";
 			reg = <0x49027000 0x100>,
@@ -1491,7 +1491,7 @@
 			status = "disabled";
 		};
 
-		cmp0: cmp0@49023000 {
+		cmp0: comparator@49023000 {
 			compatible = "alif,cmp-module";
 			reg = <0x49023000 0x1000>;
 			reg-names = "cmp_reg";
@@ -1503,7 +1503,7 @@
 			status = "disabled";
 		};
 
-		cmp1: cmp1@49024000 {
+		cmp1: comparator@49024000 {
 			compatible = "alif,cmp-module";
 			reg = <0x49024000 0x1000>;
 			reg-names = "cmp_reg";
@@ -1514,7 +1514,7 @@
 			status = "disabled";
 		};
 
-		cmp2: cmp2@49025000 {
+		cmp2: comparator@49025000 {
 			compatible = "alif,cmp-module";
 			reg = <0x49025000 0x1000>;
 			reg-names = "cmp_reg";
@@ -1525,7 +1525,7 @@
 			status = "disabled";
 		};
 
-		cmp3: cmp3@49026000 {
+		cmp3: comparator@49026000 {
 			compatible = "alif,cmp-module";
 			reg = <0x49026000 0x1000>;
 			reg-names = "cmp_reg";
@@ -1536,7 +1536,7 @@
 			status = "disabled";
 		};
 
-		dac0: dac12_0@49028000 {
+		dac12_0: dac@49028000 {
 			compatible = "alif,ensemble-dac";
 			reg = <0x49028000 0x10>;
 			clocks = <&psclks ENSEMBLE_DAC120_CLK>,
@@ -1545,7 +1545,7 @@
 			status = "disabled";
 		};
 
-		dac1: dac12_1@49029000 {
+		dac12_1: dac@49029000 {
 			compatible = "alif,ensemble-dac";
 			reg = <0x49029000 0x10>;
 			clocks = <&psclks ENSEMBLE_DAC121_CLK>,
@@ -1554,7 +1554,7 @@
 			status = "disabled";
 		};
 
-		psclks:	clkctrl_per_slv@4902f000 {
+		psclks:	clock-controller@4902f000 {
 			compatible = "alif,ensemble-ccps";
 			reg = <0x4902f000 0x1000>;
 			#clock-cells = <1>;
