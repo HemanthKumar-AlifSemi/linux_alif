@@ -201,6 +201,11 @@ u32 channel_sel;
 #define ADC_DONE0_INTERRUPT     BIT(0)
 #define ADC_DONE1_INTERRUPT     BIT(1)
 
+#define ADC120_BASE 0x49020000
+#define ADC121_BASE 0x49021000
+#define ADC122_BASE 0x49022000
+#define ADC24_BASE 0x49027000
+
 enum ADC_SCAN_MODE {
 	ADC_SCAN_MODE_MULTI_CH,
 	ADC_SCAN_MODE_SINGLE_CH
@@ -844,20 +849,32 @@ static int alif_adc_probe(struct platform_device *pdev)
 	/* disabling the ADC_INTERRUPT_MASK ADC12/ADC24 */
 	adc_unmask_interrupt(st);
 
-	/* Checking instances ADC120, ADC121 and ADC122 */
-	if (!(strcmp(st->name, "49020000.adc12_0"))) {
+	/*
+	 * Identify ADC instance using hardware base address.
+	 * This is more robust than string matching as it:
+	 * - Does not depend on device tree naming conventions
+	 * - Hardware addresses are always unique and available
+	 */
+	switch (res->start) {
+	case ADC120_BASE:
 		st->instance = ADC_INSTANCE_ADC12_0;
 		st->comparator_en = 1;
 		st->comparator_bias = COMPARATOR_BIAS_2_5;
-	} else if (!(strcmp(st->name, "49021000.adc12_1"))) {
+		break;
+
+	case ADC121_BASE:
 		st->instance = ADC_INSTANCE_ADC12_1;
 		st->comparator_en = 1;
 		st->comparator_bias = COMPARATOR_BIAS_2_5;
-	} else if (!(strcmp(st->name, "49022000.adc12_2"))) {
+		break;
+
+	case ADC122_BASE:
 		st->instance = ADC_INSTANCE_ADC12_2;
 		st->comparator_en = 1;
 		st->comparator_bias = COMPARATOR_BIAS_2_5;
-	} else if (!(strcmp(st->name, "49027000.adc24"))) {
+		break;
+
+	case ADC24_BASE:
 		st->comparator_en = 1;
 		st->adc24_bias = ADC24_BIAS_8_75;
 		st->adc24_output_rate = ADC_OUTPUT_RATE_1K;
@@ -873,6 +890,13 @@ static int alif_adc_probe(struct platform_device *pdev)
 		st->width_sample = WIDTH_SAMPLE(0);
 		st->sample_hold = SAMPLE_HOLD;
 		st->shift_control_val = ADC24_SHIFT_CONTROL_SETTING;
+		break;
+
+	default:
+		dev_err(&pdev->dev, "Unknown ADC instance at 0x%08llx\n",
+			(unsigned long long)res->start);
+		clk_disable_unprepare(st->clk);
+		return -EINVAL;
 	}
 
 	if (st->instance == ADC_INSTANCE_ADC12_0 || st->instance == ADC_INSTANCE_ADC24_0) {
