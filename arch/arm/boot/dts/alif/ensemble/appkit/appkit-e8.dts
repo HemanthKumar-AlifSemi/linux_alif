@@ -61,7 +61,7 @@
 			"Headphone Jack", "Right Line Out";
 
 		cpudai_0: simple-audio-card,cpu {
-			sound-dai = <&i2s3>;
+			sound-dai = <&i2s2>;
 		};
 		acodec: simple-audio-card,codec {
 			sound-dai = <&wm8904>;
@@ -148,10 +148,10 @@
 
 };
 
-&i2s3 {
+&i2s2 {
 	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_i2s3>;
-	status = I2S3_STATUS;
+	pinctrl-0 = <&pinctrl_i2s2>;
+	status = I2S2_STATUS;
 };
 
 &eth0 {
@@ -406,12 +406,12 @@
 		>;
 	};
 
-	pinctrl_i2s3: i2s3grp {
+	pinctrl_i2s2: i2s2grp {
 		pinmux = <
-			PIN_P8_6__I2S3_SCLK_B	0x23
-			PIN_P8_7__I2S3_WS_B	0x23
-			PIN_P9_0__I2S3_SDI_B	0x23
-			PIN_P9_3__I2S3_SDO_A	0x23
+			PIN_P8_1__I2S2_SDI_A	0x23
+			PIN_P8_2__I2S2_SDO_A	0x23
+			PIN_P8_3__I2S2_SCLK_A	0x23
+			PIN_P8_4__I2S2_WS_A	0x23
 		>;
 	};
 
