@@ -1,0 +1,76 @@
+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+%YAML 1.2
+---
+$id: https://devicetree.org/schemas/misc/invensense,ch201.yaml#
+$schema: http://devicetree.org/meta-schemas/core.yaml#
+
+title: Invensense CH201 Ultrasonic Time-of-Flight Sensor
+
+maintainers:
+  - name: Aravind Krishnan
+    email: aravind.krishnan@alifsemi.com
+
+description: |
+  The Invensense CH201 is an ultrasonic time-of-flight sensor that measures
+  distance to objects using ultrasonic signals. It communicates via I2C
+  and uses GPIO pins for control signals.
+
+  The device exposes a character device interface (/dev/ch201-*) for
+  user-space communication with the sensor and for performing control.
+
+properties:
+  compatible:
+    const: invensense,ch201
+
+  reg:
+    maxItems: 1
+    description: I2C slave address of the sensor
+
+  reset-gpios:
+    maxItems: 1
+    description: GPIO pin for sensor reset signal (active low)
+
+  prog-gpios:
+    maxItems: 1
+    description: GPIO pin for sensor programming mode control
+
+  intr-gpios:
+    maxItems: 1
+    description: |
+      GPIO pin for sensor interrupt output (INT1).
+      Used for measurement ready interrupt and RTC calibration pulse.
+
+  interrupts:
+    description: |
+      Interrupt line from the sensor, typically connected to the INT1 pin.
+    maxItems: 1
+
+  interrupt-parent:
+    description: |
+      Phandle to the interrupt controller (GPIO controller).
+
+
+required:
+  - compatible
+  - reg
+  - interrupts
+  - interrupt-parent
+
+additionalProperties: false
+
+examples:
+  - |
+    i2c {
+      #address-cells = <1>;
+      #size-cells = <0>;
+
+      ch201@29 {
+        compatible = "invensense,ch201";
+        reg = <0x29>;
+        interrupt-parent = <&port7>;
+        interrupts = <3 IRQ_TYPE_EDGE_RISING>;
+        reset-gpios = <&gpio 12 1>;      /* GPIO pin 12, active low */
+        prog-gpios = <&gpio 13 0>;       /* GPIO pin 13, active high */
+        intr-gpios = <&gpio 14 0>;       /* GPIO pin 14, active high */
+      };
+    };
