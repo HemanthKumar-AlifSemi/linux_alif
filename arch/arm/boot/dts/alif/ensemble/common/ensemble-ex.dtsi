@@ -804,7 +804,7 @@
 			#size-cells = <0>;
 			compatible = "snps,dw-apb-gpio";
 			reg = <0x49006000 0x1000>;
-			status = "disabled";
+			status = "okay";
 
 			port7: gpio-port@0 {
 				compatible = "snps,dw-apb-gpio-port";

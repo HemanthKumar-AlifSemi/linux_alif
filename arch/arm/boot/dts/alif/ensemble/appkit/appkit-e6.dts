@@ -135,6 +135,7 @@
 &i2c1 {
 	#address-cells = <1>;
 	#size-cells = <0>;
+	clock-frequency = <100000>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c1>;
 	status = I2C1_STATUS;
@@ -144,6 +145,15 @@
 		#sound-dai-cells = <0>;
 		clocks = <&wm8904_mclk>;
 		clock-names = "mclk";
+	};
+	ch201: ch201@29 {
+		compatible = "invensense,ch201";
+		reg = <0x29>;               /* application I2C address */
+		interrupt-parent = <&port7>;
+		interrupts = <3 IRQ_TYPE_EDGE_RISING>;
+		prog-gpios = <&port7 2 GPIO_ACTIVE_HIGH>;
+		reset-gpios = <&port7 4 GPIO_ACTIVE_LOW>;
+		intr-gpios = <&port7 3 GPIO_ACTIVE_HIGH>;
 	};
 
 };
@@ -403,6 +413,9 @@
 		pinmux = <
 			PIN_P7_2__I2C1_SDA_C	0x23
 			PIN_P7_3__I2C1_SCL_C	0x23
+			PIN_P6_2__GPIO		0x23
+			PIN_P6_3__GPIO		0x23
+			PIN_P6_4__GPIO		0x23
 		>;
 	};
 
