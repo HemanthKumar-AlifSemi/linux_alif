@@ -1,0 +1,59 @@
+#
+# (C) COPYRIGHT 2020,2022 ARM Limited.
+#
+# This program is free software and is provided to you under the terms of the
+# GNU General Public License version 2 as published by the Free Software
+# Foundation, and any use by you of this program is subject to the terms
+# of such GNU licence.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, you can access it online at
+# http://www.gnu.org/licenses/gpl-2.0.html.
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+
+config ETHOSU_ARM
+        bool "ARM Ethos-U NPU driver (built-in)"
+        depends on OF && HAS_IOMEM
+        select DMA_SHARED_BUFFER
+        help
+          Say Y here to enable the ARM Ethos-U NPU driver as built-in.
+
+          This driver provides a complete inference pipeline for ARM Ethos-U
+          Neural Processing Units, including TensorFlow Lite model support,
+          buffer management, and job scheduling.
+
+          This is the full-featured ARM driver stack integrated as built-in
+          kernel driver (no loadable modules required).
+
+          If unsure, say Y for embedded platforms.
+
+config ETHOSU_RPMSG
+        bool "ARM Ethos-U NPU RPMSG interface"
+        depends on ETHOSU_ARM && RPMSG
+        help
+          Say Y here to enable the RPMSG interface for subsystem configuration.
+
+          This interface allows communication with a remote processor
+          (e.g. Cortex-M) that manages the NPU in subsystem mode.
+
+          Say N for direct drive configuration (recommended for embedded).
+
+config ETHOSU_DIRECT
+        bool "ARM Ethos-U NPU direct drive"
+        depends on ETHOSU_ARM
+        default y
+        help
+          Say Y here to enable direct drive configuration where the host
+          CPU manages the NPU directly without a separate subsystem.
+
+          This is the recommended configuration for embedded platforms
+          as it has lower memory overhead and complexity.
+
+          If unsure, say Y.

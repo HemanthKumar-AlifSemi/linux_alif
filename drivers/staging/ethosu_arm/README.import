@@ -1,0 +1,8 @@
+This folder contains the kernel driver portion of the Arm Ethos-U Linux driver stack.
+
+Upstream source:
+https://gitlab.arm.com/artificial-intelligence/ethos-u/ethos-u-linux-driver-stack
+  Commit: 432e1125835bf75f792b357b13da5b04799bebc5
+
+Only the 'kernel/' subdirectory is included.
+All rights and licenses remain with Arm Ltd.

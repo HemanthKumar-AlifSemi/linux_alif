@@ -22,168 +22,144 @@
 #include "alif_temp.h"
 
 extern int tempData[][2];
-uint32_t channel_sel;
+u32 channel_sel;
 
-/* ADC_INTERRUPT bits */
-#define AVG_SAMPLE_RDY	  (1 << 0)
-#define ALL_SMAPLES_TAKEN (1 << 1)
-#define AVG_CALC_THRESH_0 (1 << 2)
-#define AVG_CALC_THRESH_1 (1 << 3)
-#define ADC_INTERRUPT_FLAGS ((1<<0) | (1 << 1) | (1 << 2) | (1 << 3))
+/* ADC_INTERRUPT register bit definitions */
+#define AVG_SAMPLE_RDY		BIT(0)		/* Averaged sample ready */
+#define ALL_SAMPLES_TAKEN	BIT(1)		/* All sequencer samples captured */
+#define AVG_CALC_THRESH_0	BIT(2)		/* Average crossed threshold A */
+#define AVG_CALC_THRESH_1	BIT(3)		/* Average crossed threshold B */
+#define ADC_INTERRUPT_FLAGS	(AVG_SAMPLE_RDY | ALL_SAMPLES_TAKEN |	\
+				AVG_CALC_THRESH_0 | AVG_CALC_THRESH_1)
+#define ADC_INTERRUPT_ALL_MASK	(GENMASK(3, 0))
 
-/* Read value setting  */
-#define ADC_24BIT_READ (0xFFFFFF)
-#define ADC_16BIT_READ (0xFFFF0)
-#define ADC_12BIT_READ (0x3FF)
-#define ADC_8BIT_READ (0xFF)
-
+#define ADC_24BIT_READ		(GENMASK(23, 0))
+#define ADC_12BIT_READ		(GENMASK(9, 0))
+#define ADC_16BIT_READ		(GENMASK(19, 4))
+#define ADC_8BIT_READ		(GENMASK(7, 0))
 /* LSB is used to calculate analog voltage value
  * from the number of ADC sample value
- * Analog value = adc sample * vref / (2 ^ 24 - 1);
- * Analog value = adc sample * vref / (2 ^ 12 - 1);
+ * For ADC24 (bipolar mode, with sign bit):
+ *   Analog value = adc sample * vref / (2 ^ 23 - 1);
+ * For ADC12 (unsigned):
+ *   Analog value = adc sample * vref / (2 ^ 12 - 1);
  */
-#define ADC_24BIT_LSB_DIV	(1 << 24)
-#define ADC_12BIT_LSB_DIV	(1 << 12)
+#define ADC_24BIT_LSB_DIV	BIT(23)
+#define ADC_12BIT_LSB_DIV	BIT(12)
 
-/*
- * ALIF registers definitions
- */
-#define ALIFAD_SELECT(x)	((x) + 0x04)
-#define ALIFAD_CTRL(x)	((x) + 0x08)
-#define ALIFAD_VALUE(x)	((x) + 0x48)
-
-/* Bit definitions for ALIFAD_SELECT: */
-/* constant, always write this value! */
-#define ALIFAD_REFm         0x00000200
-/* constant, always write this value! */
-#define ALIFAD_REFp		0x00000080
-/* multiple of this is the channel number: 0, 1, 2 */
-#define ALIFAD_IN		0x00000010
-/* constant, always write this value! */
-#define ALIFAD_INTERNAL	0x00000004
-
-/* Bit definitions for ALIFAD_CTRL: */
-#define ALIFAD_STROBE	0x00000002
-#define ALIFAD_PDN_CTRL	0x00000004
-
-/* Bit definitions for ALIFAD_VALUE: */
-#define ALIFAD_VALUE_MASK	0x000003FF
+#define ALIFAD_IN		BIT(4)
 
 #define ALIF_NAME "adc-dev"
 
-#define CGU_BASE        0x1A602000
-#define CGU_CLK_ENA     0x14
-
 /* PMU_PERIPH offset */
-#define PMU_PERIPH_OFFSET (0X40)
+#define PMU_PERIPH_OFFSET	(0x40)
 
-/* ANA Register */
-#define ANA_BASE            0x1A60A000
-#define ANA_VBAT_REG2       0x3C
+/* CMP Register Offset */
+#define CMP_COMP_REG2_OFFSET	0x4
 
-/* Expansion Slave registers. */
-#define EXPSLV_BASE     0x4902F000
-#define EXPSLV_ADC_CTRL 0x30
-#define EXPSLV_CMP_CTRL 0x38
+/* Analog Vref setting */
+#define ANA_PERIPH_LDO_CONT_POS		6U
+#define ANA_PERIPH_BG_CONT_POS		1U
 
-/* CMP Register */
-#define CMP0_BASE 0x49023000
-#define CMP_COMP_REG2 0x4
+#define ANA_PERIPH_LDO_CONT		(0xAU << ANA_PERIPH_LDO_CONT_POS)
+#define ANA_PERIPH_BG_CONT		(0xAU << ANA_PERIPH_BG_CONT_POS)
 
-/* Adc Vref setting */
-#define ADC_VREF_BUF_RDIV_EN (0x0U << 16)
-#define ADC_VREF_BUF_EN      (0x1U << 15)
-#define ADC_VREF_CONT        (0x10U << 10)
-#define ANA_PERIPH_LDO_CONT  (0xAU << 6)
-#define ANA_PERIPH_BG_CONT   (0xAU << 1)
+/*
+ * ALIF ADC Register Map (offsets from adc_base)
+ *
+ * Offset | Register            | Description
+ * -------|---------------------|------------------------------
+ * 0x00   | START_SRC           | Conversion start control
+ * 0x04   | COMP_THRESH_A       | Comparator threshold A
+ * 0x08   | COMP_THRESH_B       | Comparator threshold B
+ * 0x0C   | CLK_DIVISOR         | ADC clock divider
+ * 0x10   | INTERRUPT           | Interrupt status
+ * 0x14   | INTERRUPT_MASK      | Interrupt mask
+ * 0x18   | SAMPLE_WIDTH        | Sample width control
+ * 0x20   | AVG_NUM             | Number of samples to average
+ * 0x24   | SHIFT_CONTROL       | Data shift control
+ * 0x30   | CONTROL             | General control
+ * 0x34   | SEQUENCER_CTRL      | Channel sequencer control
+ * 0x38   | REG1                | ADC instance config (per ADC12x)
+ * 0x3C   | SEL                 | Current channel select
+ * 0x50+  | SAMPLE_REG_0..n     | Sample result registers
+ */
 
-
-/* ADC register offsets */
-#define ADC_START_SRC      (0x00)
-#define ADC_COMP_THRESH_A  (0x04)
-#define ADC_COMP_THRESH_B  (0x08)
-#define ADC_CLK_DIVISOR    (0x0C)
-#define ADC_INTERRUPT      (0x10)
-#define ADC_INTERRUPT_MASK (0x14)
-#define ADC_SAMPLE_WIDTH   (0x18)
-#define ADC_AVG_NUM        (0x20)
-#define ADC_SHIFT_CONTROL  (0x24)
-#define ADC_CONTROL        (0x30)
-#define ADC_SEQUENCER_CTRL (0x34)
-#define ADC_REG1           (0x38)
-#define ADC_SEL            (0x3C)
-#define ADC_SAMPLE_REG_0   (0x50)
+#define ADC_START_SRC		(0x00)
+#define ADC_COMP_THRESH_A	(0x04)
+#define ADC_COMP_THRESH_B	(0x08)
+#define ADC_CLK_DIVISOR		(0x0C)
+#define ADC_INTERRUPT		(0x10)
+#define ADC_INTERRUPT_MASK	(0x14)
+#define ADC_SAMPLE_WIDTH	(0x18)
+#define ADC_AVG_NUM		(0x20)
+#define ADC_SHIFT_CONTROL	(0x24)
+#define ADC_CONTROL		(0x30)
+#define ADC_SEQUENCER_CTRL	(0x34)
+#define ADC_REG1		(0x38)
+#define ADC_SEL			(0x3C)
+#define ADC_SAMPLE_REG_0	(0x50)
 
 /****ADC Register macros****/
-#define ADC_START_CONTINUOUS_CONV          (1U << 6)
-#define ADC_START_ENABLE                   (1U << 7)
-#define ADC_START_SINGLE_SHOT_CONV         (1U << 0)
+#define ADC_START_CONTINUOUS_CONV_POS		6U
+#define ADC_START_ENABLE_POS			7U
+#define ADC_START_SINGLE_SHOT_CONV_POS		0U
+
+#define ADC_START_CONTINUOUS_CONV		BIT(ADC_START_CONTINUOUS_CONV_POS)
+#define ADC_START_ENABLE			BIT(ADC_START_ENABLE_POS)
+#define ADC_START_SINGLE_SHOT_CONV		BIT(ADC_START_SINGLE_SHOT_CONV_POS)
 
 /* Sample width */
-#define ADC12_SAMPLE_WIDTH_Msk (0XFFFF)
+#define ADC12_SAMPLE_WIDTH_Msk		(GENMASK(15, 0))
 
-#define SHIFT_DIR       (0 << 16)
-#define SHIFT_CONTROL   (1 << 8)
-#define COMP_THRESHOLD_A (1 << 0)
-#define COMP_THRESHOLD_B (1 << 0)
-#define COMP_EN (0 << 16)
+#define SHIFT_DIR_POS			16U
+#define SHIFT_CONTROL_POS		8U
 
-/* Channel Numbers */
-#define ADC_CHANNEL_0 0
-#define ADC_CHANNEL_1 1
-#define ADC_CHANNEL_2 2
-#define ADC_CHANNEL_3 3
-#define ADC_CHANNEL_4 4
-#define ADC_CHANNEL_5 5
-#define ADC_CHANNEL_6 6
+#define SHIFT_DIR_LEFT		(0 << SHIFT_DIR_POS)
+#define SHIFT_DIR_RIGHT		BIT(SHIFT_DIR_POS)
 
-/****ADC MASK CHANNEL****/
-#define ADC_UNMASK_CHANNEL_0                    (1 << 0)
-#define ADC_UNMASK_CHANNEL_1                    (1 << 1)
-#define ADC_UNMASK_CHANNEL_2                    (1 << 2)
-#define ADC_UNMASK_CHANNEL_3                    (1 << 3)
-#define ADC_UNMASK_CHANNEL_4                    (1 << 4)
-#define ADC_UNMASK_CHANNEL_5                    (1 << 5)
-#define ADC_UNMASK_CHANNEL_6                    (1 << 6)
-#define ADC_UNMASK_CHANNEL_7                    (1 << 7)
-#define ADC_UNMASK_CHANNEL_8                    (1 << 8)
+#define SHIFT_CONTROL		BIT(SHIFT_CONTROL_POS)
 
-#define ADC_COMPARATOR_THRESHOLD_ABOVE_A        (1 << 0)
-#define ADC_COMPARATOR_THRESHOLD_ABOVE_B        (1 << 1)
-#define ADC_COMPARATOR_THRESHOLD_BELOW_A        (1 << 2)
-#define ADC_COMPARATOR_THRESHOLD_BELOW_B        (1 << 3)
-#define ADC_COMPARATOR_THRESHOLD_BETWEEN_A_B    (1 << 4)
-#define ADC_COMPARATOR_THRESHOLD_OUTSIDE_A_B    (1 << 5)
+/**** ADC24 Specific Settings ****/
+#define ADC24_SHIFT_AMOUNT		(8U)	/* because 2^8 = 256 average samples */
+#define ADC24_SHIFT_CONTROL_SETTING	(SHIFT_DIR_RIGHT | ADC24_SHIFT_AMOUNT)
 
-#define TEMPERATURE_SENSOR                      ADC_CHANNEL_6
-#define MAX_NUM_THRESHOLD                       (6)
+/**** Sample & Hold ****/
+#define SAMPLE_HOLD_POS			16U
+#define SAMPLE_HOLD			BIT(SAMPLE_HOLD_POS)
+
+/**** Comparator Settings ****/
+#define COMP_THRESHOLD_A_POS		0U
+#define COMP_THRESHOLD_B_POS		0U
+#define COMP_EN_POS			16U
+
+#define COMP_THRESHOLD_A		BIT(COMP_THRESHOLD_A_POS)
+#define COMP_THRESHOLD_B		BIT(COMP_THRESHOLD_B_POS)
+#define COMP_EN				(0U << COMP_EN_POS)
 
 /****Sequencer Macros****/
-#define ADC_SEQUENCER_MSK_BIT (0x01)
-#define ADC_MAX_INIT_CHANNEL  (0X100)
-#define ADC_MSK_INIT_CHANNEL  (0X0F)
-#define ADC_MSK_ALL_CHANNELS  (0X1FF)
+#define ADC_SEQUENCER_MSK_BIT		BIT(0)
+#define ADC_SEQUENCER_INIT_MASK		(GENMASK(15, 12))
+#define ADC_MAX_INIT_CHANNEL		BIT(8)
+#define ADC_MSK_INIT_CHANNEL		(GENMASK(3, 0))
+#define ADC_MSK_ALL_CHANNELS		(GENMASK(8, 0))
 
 /********Interrupt mask macro*******/
-#define ADC_INTR_CMPA_POS            (2)
-#define ADC_INTR_CMPA_MSK            (1 << ADC_INTR_CMPA_POS)
-#define ADC_INTR_CMPB_POS            (3)
-#define ADC_INTR_CMPB_MSK            (1 << ADC_INTR_CMPB_POS)
-#define ADC_THRSHLD_CMP_MASK_BIT_POS (16)
-#define ADC_THRSHLD_CMP_MASK_BIT     (0x03 << ADC_THRSHLD_CMP_MASK_BIT_POS)
+#define ADC_INTR_CMPA_POS		2U
+#define ADC_INTR_CMPA_MSK		BIT(ADC_INTR_CMPA_POS)
+#define ADC_INTR_CMPB_POS		3U
+#define ADC_INTR_CMPB_MSK		BIT(ADC_INTR_CMPB_POS)
+#define ADC_THRSHLD_CMP_MASK_BIT_POS	16U
+#define ADC_THRSHLD_CMP_MASK_BIT	(0x03 << ADC_THRSHLD_CMP_MASK_BIT_POS)
 
 /****Shift bit macro****/
-#define ADC_SHIFT_BIT          (16)
-#define ADC_SEQUENCER_INIT_Pos (12)
+#define ADC_SHIFT_BIT		16U
+#define ADC_SEQUENCER_INIT_Pos	12U
 
 /****Comparator Macros****/
-#define ADC_CMP_THRHLD_ABOVE_A     (0)
-#define ADC_CMP_THRHLD_BELOW_A     (1)
-#define ADC_CMP_THRHLD_BETWEEN_A_B (2)
-
-#define ADC_CMP_THRHLD_ABOVE_B     (0)
-#define ADC_CMP_THRHLD_BELOW_B     (1)
-#define ADC_CMP_THRHLD_OUTSIDE_A_B (2)
+#define ADC_CMP_THRHLD_ABOVE_A		(0)
+#define ADC_CMP_THRHLD_BELOW_A		(1)
+#define ADC_CMP_THRHLD_BETWEEN_A_B	(2)
 
 /* ADC reg1 position macro */
 #define ADC120_DIFFERENTIAL_EN_Pos (1)
@@ -202,34 +178,22 @@ uint32_t channel_sel;
 #define ADC122_VCM_DIV_Pos         (5)
 
 /* PMU_PERIPH field definitions */
-#define PMU_PERIPH_ADC1_PGA_EN           (1U << 0)
-#define PMU_PERIPH_ADC1_PGA_GAIN_Pos     (1)
-#define PMU_PERIPH_ADC1_PGA_GAIN_Msk     (0x7)
-#define PMU_PERIPH_ADC2_PGA_EN           (1U << 4)
-#define PMU_PERIPH_ADC2_PGA_GAIN_Pos     (5)
-#define PMU_PERIPH_ADC2_PGA_GAIN_Msk     (0xE0)
-#define PMU_PERIPH_ADC3_PGA_EN           (1U << 8)
-#define PMU_PERIPH_ADC3_PGA_GAIN_Pos     (9)
-#define PMU_PERIPH_ADC3_PGA_GAIN_Msk     (0xE00)
-#define PMU_PERIPH_ADC24_EN              (1U << 12)
-#define PMU_PERIPH_ADC24_OUTPUT_RATE_Pos (13)
-#define PMU_PERIPH_ADC24_OUTPUT_RATE_Msk (0xE000)
-#define PMU_PERIPH_ADC24_PGA_EN          (1U << 16)
-#define PMU_PERIPH_ADC24_PGA_GAIN_Pos    (17)
-#define PMU_PERIPH_ADC24_PGA_GAIN_Msk    (0xE0000)
-#define PMU_PERIPH_ADC24_BIAS_Pos        (20)
-#define PMU_PERIPH_ADC24_BIAS_Msk        (0x700000)
+#define PMU_PERIPH_ADC24_EN			BIT(12)
+#define PMU_PERIPH_ADC24_OUTPUT_RATE_Pos	13U
+#define PMU_PERIPH_ADC24_OUTPUT_RATE_Msk	(GENMASK(15, 13))
+#define PMU_PERIPH_ADC24_BIAS_Pos		20U
+#define PMU_PERIPH_ADC24_BIAS_Msk		(GENMASK(22, 20))
 
-//1.76v change to 176mV
-#define VREF_VOLT 176
+/* ADC reference voltage: 1.76V, stored as 176 (divide by 100 to get volts) */
+#define ADC_VREF_CENTIVOLTS		176
 
-//Program clk divisor from 2 to 16 on ADC_CLK_DIVISOR register
+/* Program clk divisor from 2 to 16 on ADC_CLK_DIVISOR register */
 #define CLK_DIVISOR(x) (x < 16 ? x : 16)
 
-//Program Sample number from 2 to 256 to ADC_AVG_NUM register
+/* Program Sample number from 2 to 256 to ADC_AVG_NUM register */
 #define AVG_NUM(x) (x < 256 ? x : 256)
 
-//Program Sample width from 2 to 32 to ADC_SAMPLE_WIDTH register
+/* Program Sample width from 2 to 32 to ADC_SAMPLE_WIDTH register */
 #define WIDTH_SAMPLE(x) (x < 32 ? x : 32)
 
 #define TIMEOUT_MS 100
@@ -237,23 +201,28 @@ uint32_t channel_sel;
 #define ADC_DONE0_INTERRUPT     BIT(0)
 #define ADC_DONE1_INTERRUPT     BIT(1)
 
+#define ADC120_BASE 0x49020000
+#define ADC121_BASE 0x49021000
+#define ADC122_BASE 0x49022000
+#define ADC24_BASE 0x49027000
+
 enum ADC_SCAN_MODE {
 	ADC_SCAN_MODE_MULTI_CH,
 	ADC_SCAN_MODE_SINGLE_CH
 };
 
 enum COMPARATOR_BIAS {
-	COMPARATOR_BIAS_0_5,   //0.5 MS/s
-	COMPARATOR_BIAS_1_0,   //1 MS/s
-	COMPARATOR_BIAS_2_5,   //2.5 MS/s
-	COMPARATOR_BIAS_5_0    //5 MS/s
+	COMPARATOR_BIAS_0_5,   /* 0.5 MS/s */
+	COMPARATOR_BIAS_1_0,   /* 1 MS/s */
+	COMPARATOR_BIAS_2_5,   /* 2.5 MS/s */
+	COMPARATOR_BIAS_5_0    /* 5 MS/s */
 };
 
 enum ADC24_BIAS {
-	ADC24_BIAS_5_0,   //5uA
-	ADC24_BIAS_6_2,   //6.2uA
-	ADC24_BIAS_7_5,   //7.5uA
-	ADC24_BIAS_8_75   //8.75uA
+	ADC24_BIAS_5_0,   /* 5uA */
+	ADC24_BIAS_6_2,   /* 6.2uA */
+	ADC24_BIAS_7_5,   /* 7.5uA */
+	ADC24_BIAS_8_75   /* 8.75uA */
 };
 
 enum ADC_PGA_GAIN {
@@ -268,11 +237,11 @@ enum ADC_PGA_GAIN {
 };
 
 enum ADC24_OUTPUT_RATE {
-	ADC_OUTPUT_RATE_1K, //1KS/s
-	ADC_OUTPUT_RATE_2K, //2KS/s
-	ADC_OUTPUT_RATE_3K, //3KS/s
-	ADC_OUTPUT_RATE_4K, //4KS/s
-	ADC_OUTPUT_RATE_16K, //16KS/s
+	ADC_OUTPUT_RATE_1K, /* 1KS/s */
+	ADC_OUTPUT_RATE_2K, /* 2KS/s */
+	ADC_OUTPUT_RATE_3K, /* 3KS/s */
+	ADC_OUTPUT_RATE_4K, /* 4KS/s */
+	ADC_OUTPUT_RATE_16K, /* 16KS/s */
 };
 
 /**
@@ -280,12 +249,12 @@ enum ADC24_OUTPUT_RATE {
  * Status of an ongoing ADC conversion.
  */
 enum ADC_CONV_STAT {
-	ADC_CONV_STAT_CMP_THLD_ABOVE_A = (1U << 0),
-	ADC_CONV_STAT_CMP_THLD_ABOVE_B = (1U << 1),
-	ADC_CONV_STAT_CMP_THLD_BELOW_A = (1U << 2),
-	ADC_CONV_STAT_CMP_THLD_BELOW_B = (1U << 3),
-	ADC_CONV_STAT_CMP_THLD_BETWEEN_A_B = (1U << 4),
-	ADC_CONV_STAT_CMP_THLD_OUTSIDE_A_B = (1U << 5),
+	ADC_CONV_STAT_CMP_THLD_ABOVE_A = BIT(0),
+	ADC_CONV_STAT_CMP_THLD_ABOVE_B = BIT(1),
+	ADC_CONV_STAT_CMP_THLD_BELOW_A = BIT(2),
+	ADC_CONV_STAT_CMP_THLD_BELOW_B = BIT(3),
+	ADC_CONV_STAT_CMP_THLD_BETWEEN_A_B = BIT(4),
+	ADC_CONV_STAT_CMP_THLD_OUTSIDE_A_B = BIT(5),
 };
 
 struct alif_adc_state {
@@ -304,12 +273,15 @@ struct alif_adc_state {
 	u32 clk_div;
 	u32 avg_sample;
 	u32 width_sample;
+	u32 sample_hold;
+	u32 shift_control_val;
 	u8 differential;
 	u8 comparator_en;
 	u8 comparator_bias;
 	u8 adc24_bias;
 	u8 adc24_output_rate;
 	spinlock_t lock_s;
+	void __iomem *cmp_base;
 };
 
 /* ADC12/ADC24 instances */
@@ -383,7 +355,7 @@ ALIF_ADC_CHANNEL_DIFF(3, 7, 11), };
 
 static inline void adc_disable_single_shot_conv(struct alif_adc_state *st)
 {
-	uint32_t data;
+	u32 data;
 
 	data = readl(st->adc_base + ADC_START_SRC);
 	data &= ~(ADC_START_ENABLE);
@@ -396,7 +368,7 @@ static inline void adc_disable_single_shot_conv(struct alif_adc_state *st)
 
 static inline void adc_sequencer_msk_ch_control(struct alif_adc_state *st,
 		int channel) {
-	uint32_t val;
+	u32 val;
 
 	val = readl(st->adc_base + ADC_SEQUENCER_CTRL);
 	val &= ~(ADC_MSK_ALL_CHANNELS);
@@ -406,7 +378,7 @@ static inline void adc_sequencer_msk_ch_control(struct alif_adc_state *st,
 
 static inline void adc_enable_single_shot_conv(struct alif_adc_state *st)
 {
-	uint32_t val;
+	u32 val;
 
 	val = readl(st->adc_base + ADC_START_SRC);
 	val |= ADC_START_ENABLE;
@@ -421,7 +393,7 @@ static inline void adc_enable_single_shot_conv(struct alif_adc_state *st)
 
 static inline void adc_set_ch_scan_mode(struct alif_adc_state *st,
 		int channel_scan_mode, int channel) {
-	uint32_t val;
+	u32 val;
 
 	val = readl(st->adc_base + ADC_SEQUENCER_CTRL);
 	val = (channel_scan_mode << 0) | (channel << ADC_SEQUENCER_INIT_Pos);
@@ -431,7 +403,7 @@ static inline void adc_set_ch_scan_mode(struct alif_adc_state *st,
 
 static inline void disable_adc(struct alif_adc_state *st)
 {
-	uint32_t data;
+	u32 data;
 
 	data = readl(st->adc_base + ADC_START_SRC);
 	data &= ~(ADC_START_ENABLE);
@@ -446,7 +418,7 @@ static inline void adc_set_diff_and_comp(struct alif_adc_state *st,
 		u32 inst, u8 differential, u8 comparator_en,
 		u8 comparator_bias)
 {
-	uint32_t val_r, read_r;
+	u32 val_r, read_r;
 
 	switch (inst) {
 	case ADC_INSTANCE_ADC12_0:
@@ -483,7 +455,7 @@ static inline void adc_set_diff_and_comp(struct alif_adc_state *st,
 
 static int get_temp(int *adc_value)
 {
-	uint32_t i;
+	u32 i;
 
 	/* check for temperature operating range */
 	if ((*adc_value < tempData[0][0])
@@ -518,7 +490,7 @@ static int alif_read_raw(struct iio_dev *indio_dev,
 					chan->channel);
 		adc_sequencer_msk_ch_control(st, chan->channel);
 		channel_sel = ((readl(st->adc_base + ADC_SEQUENCER_CTRL)
-				& 0xF000) >> 12);
+				& ADC_SEQUENCER_INIT_MASK) >> 12);
 		/* check channel number passed is enabled or not */
 		if (((readl(st->adc_base + ADC_SEQUENCER_CTRL))
 			& (1 << channel_sel))) {
@@ -644,12 +616,12 @@ static const struct iio_info alif_adc_iio_info = { .read_raw =
 static inline void read_adc_data(struct alif_adc_state *st)
 {
 
-	uint32_t value;
+	u32 value;
 	void __iomem *channel_sample_reg;
 	void __iomem *sample_reg = (st->adc_base + ADC_SAMPLE_REG_0);
-	uint32_t channel_num = readl(st->adc_base + ADC_SEL);
+	u32 channel_num = readl(st->adc_base + ADC_SEL);
 
-	channel_sample_reg = (sample_reg + sizeof(uint32_t) * channel_num);
+	channel_sample_reg = (sample_reg + sizeof(u32) * channel_num);
 	st->value = (readl((u32 *)channel_sample_reg));
 	value = readl(st->adc_base + ADC_CONTROL);
 	value &= ADC_THRSHLD_CMP_MASK_BIT;
@@ -673,13 +645,13 @@ static inline void read_adc_data(struct alif_adc_state *st)
 
 static irqreturn_t alif_adc_isr(int irq, void *dev_id)
 {
-	uint32_t status;
+	u32 status;
 	struct alif_adc_state *st = dev_id;
 
 	status = readl(st->adc_base + ADC_INTERRUPT);
 
 	if ((status & ADC_INTERRUPT_FLAGS) == ((AVG_SAMPLE_RDY) |
-		(ALL_SMAPLES_TAKEN) | (AVG_CALC_THRESH_0) |
+		(ALL_SAMPLES_TAKEN) | (AVG_CALC_THRESH_0) |
 		(AVG_CALC_THRESH_1))) {
 		iowrite32(status, st->adc_base + ADC_INTERRUPT);
 		read_adc_data(st);
@@ -695,16 +667,16 @@ static irqreturn_t alif_adc_isr(int irq, void *dev_id)
 
 static inline void adc_unmask_interrupt(struct alif_adc_state *st)
 {
-	uint32_t val;
+	u32 val;
 
 	val = readl(st->adc_base + ADC_INTERRUPT_MASK);
-	val = (~(ADC_DONE0_INTERRUPT | ADC_DONE1_INTERRUPT) & 0xF);
+	val = (~(ADC_DONE0_INTERRUPT | ADC_DONE1_INTERRUPT) & ADC_INTERRUPT_ALL_MASK);
 	writel(val, st->adc_base + ADC_INTERRUPT_MASK);
 }
 
 static inline void adc_set_comparator_ctrl_bit(struct alif_adc_state *st)
 {
-	uint32_t val;
+	u32 val;
 
 	val = readl(st->adc_base + ADC_CONTROL);
 	val = COMP_EN;
@@ -712,7 +684,7 @@ static inline void adc_set_comparator_ctrl_bit(struct alif_adc_state *st)
 }
 static inline void adc_set_comparator_b(struct alif_adc_state *st)
 {
-	uint32_t val;
+	u32 val;
 
 	val = readl(st->adc_base + ADC_COMP_THRESH_B);
 	val = COMP_THRESHOLD_B;
@@ -721,7 +693,7 @@ static inline void adc_set_comparator_b(struct alif_adc_state *st)
 
 static inline void adc_set_comparator_a(struct alif_adc_state *st)
 {
-	uint32_t val;
+	u32 val;
 
 	val = readl(st->adc_base + ADC_COMP_THRESH_A);
 	val = COMP_THRESHOLD_A;
@@ -730,11 +702,9 @@ static inline void adc_set_comparator_a(struct alif_adc_state *st)
 
 static inline void adc_set_n_shift_bit(struct alif_adc_state *st)
 {
-	uint32_t val;
+	/* set ADC shift bit for ADC12/24 */
+	writel(st->shift_control_val, st->adc_base + ADC_SHIFT_CONTROL);
 
-	val = readl(st->adc_base + ADC_SHIFT_CONTROL);
-	val = (SHIFT_DIR) | (SHIFT_CONTROL);
-	writel(val, st->adc_base + ADC_SHIFT_CONTROL);
 }
 
 static inline void adc_set_clock_divsor(struct alif_adc_state *st)
@@ -750,61 +720,36 @@ static inline void adc_set_avg_sample(struct alif_adc_state *st)
 
 static inline void adc_set_sample_width(struct alif_adc_state *st)
 {
-	/* set Sample width value 16 for ADC12/ADC24 */
-	uint32_t val;
+	/* set Sample width value 16 for ADC12 and 0 for ADC24 */
+	u32 val;
 
 	val = readl(st->adc_base + ADC_SAMPLE_WIDTH);
-	val = (val & ~ADC12_SAMPLE_WIDTH_Msk) | st->width_sample;
+	val = (val & ~ADC12_SAMPLE_WIDTH_Msk) | st->width_sample |
+				st->sample_hold;
 	writel(val, st->adc_base + ADC_SAMPLE_WIDTH);
 }
 
-/* Enable LDO and BG for the ANALOG */
-static inline void adc_ana_config(void)
-{
-	uint32_t val;
-	void __iomem *va_base;
-
-	va_base = ioremap(ANA_BASE, SZ_64);
-	if (!va_base)
-		pr_err("Failed to map CGU_BASE\n");
-
-	val = ioread32(va_base + ANA_VBAT_REG2);
-	val |= (BIT(22) | BIT(23));
-	writel(val, va_base + ANA_VBAT_REG2);
-	val = ioread32(va_base + ANA_VBAT_REG2);
-	iounmap(va_base);
-}
-
 /* Vref setting */
-static inline void adc_analog_config(void)
+static inline void adc_analog_config(struct alif_adc_state *st)
 {
-	uint32_t val;
-	uint32_t cmp_reg2_val;
-	void __iomem *va_base;
-	/* Adc Vref setting */
-	va_base = ioremap(CMP0_BASE, SZ_16);
-	if (!va_base)
-		pr_err("Failed to map CMP0_BASE\n");
+	u32 val = readl(st->cmp_base + CMP_COMP_REG2_OFFSET);
 
-	val = ioread32(va_base + CMP_COMP_REG2);
-	cmp_reg2_val = (ANA_PERIPH_LDO_CONT | ANA_PERIPH_BG_CONT);
-	val |= cmp_reg2_val;
-	writel(val, va_base + CMP_COMP_REG2);
-	iounmap(va_base);
+	val |= ANA_PERIPH_LDO_CONT | ANA_PERIPH_BG_CONT;
+	writel(val, st->cmp_base + CMP_COMP_REG2_OFFSET);
 }
 
 static inline void enable_adc24(struct alif_adc_state *st)
 {
-	uint32_t data = 0;
+	u32 data = 0;
 
 	data = readl(st->adc_base + PMU_PERIPH_OFFSET);
 	data |= PMU_PERIPH_ADC24_EN;
 	writel(data, (st->adc_base + PMU_PERIPH_OFFSET));
 }
 
-static inline void set_adc24_bias(struct alif_adc_state *st, uint32_t bias)
+static inline void set_adc24_bias(struct alif_adc_state *st, u32 bias)
 {
-	uint32_t data;
+	u32 data;
 
 	data = readl(st->adc_base + PMU_PERIPH_OFFSET);
 	data |= ((bias << PMU_PERIPH_ADC24_BIAS_Pos) &
@@ -813,9 +758,9 @@ static inline void set_adc24_bias(struct alif_adc_state *st, uint32_t bias)
 }
 
 static inline void set_adc24_output_rate(struct alif_adc_state *st,
-		uint32_t rate)
+		u32 rate)
 {
-	uint32_t data;
+	u32 data;
 
 	data = readl(st->adc_base + PMU_PERIPH_OFFSET);
 	data |= ((rate << PMU_PERIPH_ADC24_OUTPUT_RATE_Pos)
@@ -879,28 +824,18 @@ static int alif_adc_probe(struct platform_device *pdev)
 	iodev->channels = alif_adc_iio_channels;
 	iodev->num_channels = ARRAY_SIZE(alif_adc_iio_channels);
 	st->name = iodev->name;
-	st->vref = VREF_VOLT;
+	st->vref = ADC_VREF_CENTIVOLTS;
 	st->clk_div = CLK_DIVISOR(2);
 	st->avg_sample = AVG_NUM(256);
+	st->sample_hold = 0;
 	st->width_sample = WIDTH_SAMPLE(16);
-
-	/* ADC Analog Setting */
-	adc_ana_config();
-
-	/* Vref Setting */
-	adc_analog_config();
-
-	/* set sample width value ADC12/24 */
-	adc_set_sample_width(st);
+	st->shift_control_val = (SHIFT_DIR_LEFT) | (SHIFT_CONTROL);
 
 	/* set the clock divisor */
 	adc_set_avg_sample(st);
 
 	/* set clock divisor for ADC121 */
 	adc_set_clock_divsor(st);
-
-	/* set adc set and shift bit ADC120 */
-	adc_set_n_shift_bit(st);
 
 	/* set comparator_a threshold */
 	adc_set_comparator_a(st);
@@ -914,33 +849,72 @@ static int alif_adc_probe(struct platform_device *pdev)
 	/* disabling the ADC_INTERRUPT_MASK ADC12/ADC24 */
 	adc_unmask_interrupt(st);
 
-	/* Checking instances ADC120, ADC121 and ADC122 */
-	if (!(strcmp(st->name, "49020000.adc12_0"))) {
+	/*
+	 * Identify ADC instance using hardware base address.
+	 * This is more robust than string matching as it:
+	 * - Does not depend on device tree naming conventions
+	 * - Hardware addresses are always unique and available
+	 */
+	switch (res->start) {
+	case ADC120_BASE:
 		st->instance = ADC_INSTANCE_ADC12_0;
 		st->comparator_en = 1;
 		st->comparator_bias = COMPARATOR_BIAS_2_5;
-	} else if (!(strcmp(st->name, "49021000.adc12_1"))) {
+		break;
+
+	case ADC121_BASE:
 		st->instance = ADC_INSTANCE_ADC12_1;
 		st->comparator_en = 1;
 		st->comparator_bias = COMPARATOR_BIAS_2_5;
-	} else if (!(strcmp(st->name, "49022000.adc12_2"))) {
+		break;
+
+	case ADC122_BASE:
 		st->instance = ADC_INSTANCE_ADC12_2;
 		st->comparator_en = 1;
 		st->comparator_bias = COMPARATOR_BIAS_2_5;
-	} else if (!(strcmp(st->name, "49027000.adc24"))) {
+		break;
+
+	case ADC24_BASE:
 		st->comparator_en = 1;
 		st->adc24_bias = ADC24_BIAS_8_75;
 		st->adc24_output_rate = ADC_OUTPUT_RATE_1K;
-		/* enable adc24 from control register */
+		/* enable ADC24 from control register */
 		enable_adc24(st);
 		/* set output rate from control register */
 		set_adc24_output_rate(st, st->adc24_output_rate);
-		/* Set adc24 bias from control register */
+		/* Set ADC24 bias from control register */
 		set_adc24_bias(st, st->adc24_bias);
 		iodev->channels = adc24_channels;
 		iodev->num_channels = ARRAY_SIZE(adc24_channels);
 		st->instance = ADC_INSTANCE_ADC24_0;
+		st->width_sample = WIDTH_SAMPLE(0);
+		st->sample_hold = SAMPLE_HOLD;
+		st->shift_control_val = ADC24_SHIFT_CONTROL_SETTING;
+		break;
+
+	default:
+		dev_err(&pdev->dev, "Unknown ADC instance at 0x%08llx\n",
+			(unsigned long long)res->start);
+		clk_disable_unprepare(st->clk);
+		return -EINVAL;
 	}
+
+	if (st->instance == ADC_INSTANCE_ADC12_0 || st->instance == ADC_INSTANCE_ADC24_0) {
+		st->cmp_base = devm_platform_ioremap_resource_byname(pdev, "cmp_base");
+		if (IS_ERR(st->cmp_base)) {
+			dev_err(&pdev->dev, "Failed to map CMP_BASE registers\n");
+			return PTR_ERR(st->cmp_base);
+		}
+		/* Vref Setting */
+		adc_analog_config(st);
+	}
+
+	/* Set sample width value ADC12/24 */
+	adc_set_sample_width(st);
+
+	/* Set ADC set and shift bit ADC12/24 */
+	adc_set_n_shift_bit(st);
+
 	/* set differential control for ADC12 */
 	if (st->instance != ADC_INSTANCE_ADC24_0) {
 		adc_set_diff_and_comp(st, st->instance, st->differential,

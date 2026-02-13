@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
- * Copyright 2024 Alif Semiconductor.
+ * Copyright 2025 Alif Semiconductor.
  * Author: Jagadeesh Krishnanjanappa <jagadeesh@alifsemi.com>
  */
 
@@ -111,16 +111,22 @@
 #define I2S3_STATUS "disabled"
 
 /* CDC200 Defines */
-#define CDC200_STATUS "okay"
+#define CDC200_STATUS "disabled"
 
 /* D2D Defines */
-#define DAVE_2D_STATUS "okay"
+#define DAVE_2D_STATUS "disabled"
 
 /* PDM Defines */
 #define PDM_STATUS "disabled"
+
+/* CPU Defines */
+#define CPU1_STATUS "okay"
 
 /* Memory Defines */
 #define MEM_STITCH_STATUS "okay"
 #define MEM_HYPER_STATUS  "disabled"
 #define MEM_HYP_STITCH_STATUS "disabled"
+
+/* Ethosu NPU */
+#define ETHOSU_NPU_STATUS "disabled"
 #endif /* __DEVKIT_DCT_H__ */

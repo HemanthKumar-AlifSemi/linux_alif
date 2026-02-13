@@ -73,3 +73,4 @@ obj-$(CONFIG_NSM)		+= nsm.o
 obj-$(CONFIG_MARVELL_CN10K_DPI)	+= mrvl_cn10k_dpi.o
 obj-y				+= keba/
 obj-$(CONFIG_ALIF_COMPARATOR) += alif-comparator.o
+obj-$(CONFIG_CH201)		+= ch201.o

@@ -32,8 +32,6 @@
 #define DAC6_EN		     BIT(20)
 #define DAC6_VREF_SCALE      BIT(27)
 #define DAC6_CONT            (0x20U << 21)
-
-
 /* Stabilization delays */
 #define VREF_STAB_DELAY_US   500
 #define DAC6_STAB_DELAY_US   200
@@ -84,7 +82,6 @@ static int ensemble_adc_dac6_probe(struct platform_device *pdev)
 	pdata->dev = &pdev->dev;
 	platform_set_drvdata(pdev, pdata);
 
-
 	/* Map registers */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	pdata->dac6_regs = devm_ioremap_resource(&pdev->dev, res);
@@ -132,7 +129,6 @@ static int ensemble_adc_dac6_probe(struct platform_device *pdev)
 err:
 	return ret;
 }
-
 
 static const struct of_device_id ensemble_adc_dac6_of_match[] = {
 		{ .compatible = "alif,adc-dac6" }

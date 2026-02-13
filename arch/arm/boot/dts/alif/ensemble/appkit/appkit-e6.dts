@@ -1,41 +1,46 @@
 // SPDX-License-Identifier: (GPL-2.0+)
 /*
-* Copyright (C) 2024 Alif Semiconductor
-*/
+ * Copyright (C) 2025 Alif Semiconductor
+ */
 /dts-v1/;
 
-#include "ensemble-e8.dtsi"
-#include "devkit_ex_dct_defines.h"
+#include "../common/ensemble-ex.dtsi"
+#include "../common/devkit_ex_dct_defines.h"
+
 / {
-	model = "devkit-e8";
+	model = "appkit-e6";
 	compatible = "alif,ensemble";
 
 	aliases {
 		serial0 = &uart4;
 	};
 
-	reg_3p3v: reg3p3v {
+	cpus {
+		/delete-node/ cpu@1;
+	};
+
+	reg_3p3v: regulator-3v3 {
 		compatible = "regulator-fixed";
 		regulator-name = "fixed-3.3V";
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
 		regulator-always-on;
 	};
-	reg_2p7v: reg27 {
+	reg_2p7v: regulator-2v7 {
 		compatible = "regulator-fixed";
 		regulator-name = "fixed-2.7V";
 		regulator-min-microvolt = <2700000>;
 		regulator-max-microvolt = <2700000>;
 		regulator-always-on;
 	};
-	reg_1p8v: reg18 {
+	reg_1p8v: regulator-1v8 {
 		compatible = "regulator-fixed";
 		regulator-name = "fixed-1.8V";
 		regulator-min-microvolt = <1800000>;
 		regulator-max-microvolt = <1800000>;
 		regulator-always-on;
 	};
-	reg_1p2v: reg12 {
+	reg_1p2v: regulator-1v2 {
 		compatible = "regulator-fixed";
 		regulator-name = "fixed-1.2V";
 		regulator-min-microvolt = <1200000>;
@@ -49,7 +54,7 @@
 		rootfstype=cramfs ro loglevel=9";
 	};
 
-	sound-wm8904 {
+	sound {
 		compatible = "simple-audio-card";
 		simple-audio-card,name = "wm8904-audio";
 		simple-audio-card,format = "i2s";
@@ -60,7 +65,7 @@
 			"Headphone Jack", "Right Line Out";
 
 		cpudai_0: simple-audio-card,cpu {
-			sound-dai = <&i2s3>;
+			sound-dai = <&i2s2>;
 		};
 		acodec: simple-audio-card,codec {
 			sound-dai = <&wm8904>;
@@ -69,13 +74,25 @@
 
 };
 
+&mem_stitch {
+	status = MEM_STITCH_STATUS;
+};
+
+&mem_hyperam {
+	status = MEM_HYPER_STATUS;
+};
+
+&mem_hyp_stitch {
+	status = MEM_HYP_STITCH_STATUS;
+};
+
 &utimer {
 	status = UTIMER0_STATUS;
 };
 
 &hsusb {
 	status = HSUSB_STATUS;
-	usbdual_hs: usb-dual@48200000 {
+	dwc3: usb@48200000 {
 		status = HSUSB_STATUS;
 	};
 };
@@ -113,62 +130,44 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c0>;
 	status = I2C0_STATUS;
-	bme680@76{
-		compatible = "bosch,bme680";
-		reg = <0x76>;
-	};
 };
 
 &i2c1 {
 	#address-cells = <1>;
 	#size-cells = <0>;
+	clock-frequency = <100000>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c1>;
 	status = I2C1_STATUS;
-	wm8904: wm8904@1a {
+	wm8904: codec@1a {
 		compatible = "wlf,wm8904";
 		reg = <0x1a>;
 		#sound-dai-cells = <0>;
 		clocks = <&wm8904_mclk>;
 		clock-names = "mclk";
 	};
+	ch201: ch201@29 {
+		compatible = "invensense,ch201";
+		reg = <0x29>;               /* application I2C address */
+		interrupt-parent = <&port7>;
+		interrupts = <3 IRQ_TYPE_EDGE_RISING>;
+		prog-gpios = <&port7 2 GPIO_ACTIVE_HIGH>;
+		reset-gpios = <&port7 4 GPIO_ACTIVE_LOW>;
+		intr-gpios = <&port7 3 GPIO_ACTIVE_HIGH>;
+	};
 
 };
 
-&i2s3 {
+&i2s2 {
 	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_i2s3>;
-	status = I2S3_STATUS;
+	pinctrl-0 = <&pinctrl_i2s2>;
+	status = I2S2_STATUS;
 };
 
 &eth0 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_eth0>;
 	status = ETH_STATUS;
-};
-
-&adc0 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_adc120>;
-	status = ADC120_STATUS;
-};
-
-&adc1 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_adc121>;
-	status = ADC121_STATUS;
-};
-
-&adc2 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_adc122>;
-	status = ADC122_STATUS;
-};
-
-&adc24 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_adc24>;
-	status = ADC24_STATUS;
 };
 
 &spi0 {
@@ -193,44 +192,6 @@
 	#size-cells = <0>;
 	cs-gpios = <&port13 7 0>;
 	status = SPI3_STATUS;
-	bme680@0 {
-		compatible = "bosch,bme680";
-		spi-max-frequency= <1000000>;
-		reg = <0>;
-	};
-
-};
-
-&cmp0 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_cmp0>;
-	status = CMP0_STATUS;
-};
-
-&cmp1 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_cmp1>;
-	status = CMP1_STATUS;
-};
-
-&cmp2 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_cmp2>;
-	status = CMP2_STATUS;
-};
-
-&cmp3 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_cmp3>;
-	status = CMP3_STATUS;
-};
-
-&dac0 {
-	status = DAC120_STATUS;
-};
-
-&dac1 {
-	status = DAC121_STATUS;
 };
 
 &hwsem0 {
@@ -368,35 +329,42 @@
 		status = "okay";
 	};
 };
-&pinmux {
-	/* syntax:
-	pinmux = < PIN_NAME	<8bit pad-config value> >
-		8bit pad-config values:
-		bit 0:	0 -> Read disable,
-			1 -> Read enable
-		bit 1:	0 -> Schmitt trigger disable
-			1 -> Schmitt trigger enable
-		bit 2:	0 -> Slew rate slow
-			1 -> Slew rate fast
-		bit 3 and 4:
-			00 -> High Impedance
-			01 -> Pull up
-			10 -> Pull down
-			11 -> Bus repeater
-		bit 5 and 6: Output drive strength
-			00 -> 2mA
-			01 -> 4mA
-			10 -> 8mA
-			11 -> 12mA
-		bit 7:	0 -> Push-pull
-			1 -> Open drain
 
-	Example: The below two lines set Read enable, schmitt
-	trigger,slow slew rate, High Impedance, output drive
-	strength of 4mA, and push-pull driver.
-	PIN_P1_0__UART2_RX_A		0x23
-	PIN_P1_1__UART2_TX_A		0x23
-	*/
+&ethosu_npu {
+	status = ETHOSU_NPU_STATUS;
+};
+
+&pinmux {
+	/*
+	 * syntax:
+	 * pinmux = < PIN_NAME     <8bit pad-config value> >
+	 *
+	 * 8bit pad-config values:
+	 * bit 0:  0 -> Read disable,
+	 *         1 -> Read enable
+	 * bit 1:  0 -> Schmitt trigger disable
+	 *         1 -> Schmitt trigger enable
+	 * bit 2:  0 -> Slew rate slow
+	 *         1 -> Slew rate fast
+	 * bit 3 and 4:
+	 *         00 -> High Impedance
+	 *         01 -> Pull up
+	 *         10 -> Pull down
+	 *         11 -> Bus repeater
+	 * bit 5 and 6: Output drive strength
+	 *         00 -> 2mA
+	 *         01 -> 4mA
+	 *         10 -> 8mA
+	 *         11 -> 12mA
+	 * bit 7:  0 -> Push-pull
+	 *         1 -> Open drain
+	 *
+	 * Example: The below two lines set Read enable, schmitt
+	 * trigger, slow slew rate, High Impedance, output drive
+	 * strength of 4mA, and push-pull driver.
+	 * PIN_P1_0__UART2_RX_A            0x23
+	 * PIN_P1_1__UART2_TX_A            0x23
+	 */
 
 	pinctrl_eth0: eth0grp {
 		pinmux = <
@@ -445,15 +413,18 @@
 		pinmux = <
 			PIN_P7_2__I2C1_SDA_C	0x23
 			PIN_P7_3__I2C1_SCL_C	0x23
+			PIN_P6_2__GPIO		0x23
+			PIN_P6_3__GPIO		0x23
+			PIN_P6_4__GPIO		0x23
 		>;
 	};
 
-	pinctrl_i2s3: i2s3grp {
+	pinctrl_i2s2: i2s2grp {
 		pinmux = <
-			PIN_P8_6__I2S3_SCLK_B	0x23
-			PIN_P8_7__I2S3_WS_B	0x23
-			PIN_P9_0__I2S3_SDI_B	0x23
-			PIN_P9_3__I2S3_SDO_A	0x23
+			PIN_P8_1__I2S2_SDI_A	0x23
+			PIN_P8_2__I2S2_SDO_A	0x23
+			PIN_P8_3__I2S2_SCLK_A	0x23
+			PIN_P8_4__I2S2_WS_A	0x23
 		>;
 	};
 
@@ -533,40 +504,6 @@
 		>;
 	};
 
-	pinctrl_adc120: adc120grp {
-		pinmux = <
-			PIN_P0_0__ANA_S0        0x23
-			PIN_P0_1__ANA_S1        0x23
-			PIN_P0_2__ANA_S2        0x23
-			PIN_P0_3__ANA_S3        0x23
-			PIN_P0_4__ANA_S4        0x23
-			PIN_P0_5__ANA_S5        0x23
-		>;
-	};
-	pinctrl_adc121: adc121grp {
-		pinmux = <
-			PIN_P0_6__ANA_S6        0x23
-			PIN_P1_2__ANA_S10       0x23
-			PIN_P1_3__ANA_S11       0x23
-		>;
-	};
-	pinctrl_adc122: adc122grp {
-		pinmux = <
-			PIN_P1_4__ANA_S12       0x23
-		>;
-	};
-	pinctrl_adc24: adc24grp {
-		pinmux = <
-			PIN_P0_0__ANA_S0        0x23
-			PIN_P0_1__ANA_S1        0x23
-			PIN_P0_2__ANA_S2        0x23
-			PIN_P0_3__ANA_S3        0x23
-			PIN_P0_4__ANA_S4        0x23
-			PIN_P0_5__ANA_S5        0x23
-			PIN_P0_6__ANA_S6        0x23
-			PIN_P0_7__ANA_S7        0x23
-		>;
-	};
 	pinctrl_spi0: spi0grp {
 		pinmux = <
 			PIN_P5_2__SPI0_SS0_B	0x23
@@ -591,36 +528,9 @@
 			PIN_P12_5__SPI3_MOSI_A	0x0
 		>;
 	};
-	pinctrl_cmp0: cmp0grp {
-		pinmux = <
-			PIN_P0_0__ANA_S0        0x23
-			PIN_P0_6__ANA_S6        0x23
-		>;
-	};
-	pinctrl_cmp1: cmp1grp {
-		pinmux = <
-			PIN_P0_1__ANA_S1        0x23
-			PIN_P0_5__ANA_S5        0x23
-			PIN_P0_7__ANA_S7        0x23
-			PIN_P1_5__ANA_S13       0x23
-		>;
-	};
-	pinctrl_cmp2: cmp2grp {
-		pinmux = <
-			PIN_P0_2__ANA_S2        0x23
-			PIN_P1_2__ANA_S10       0x23
-		>;
-	};
-	pinctrl_cmp3: cmp3grp {
-		pinmux = <
-		PIN_P0_3__ANA_S3        0x23
-		PIN_P1_3__ANA_S11       0x23
-		PIN_P1_7__ANA_S15       0x23
-		>;
-	};
 	pinctrl_sd_reset: sd_resetgrp {
 		pinmux = <
-			PIN_P14_7__GPIO		0x23 /* sd reset line*/
+			PIN_P14_7__GPIO		0x23 /* sd reset line */
 		>;
 	};
 	pinctrl_sdhci: sdhci0grp {

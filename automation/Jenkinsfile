@@ -45,7 +45,7 @@ pipeline {
                      make distclean
                      make -j64 devkit_e8_defconfig
                      make -j64 xipImage
-                     make alif/devkit-e8.dtb
+                     make alif/ensemble/devkit/devkit-e8.dtb
 
                   '''
                }

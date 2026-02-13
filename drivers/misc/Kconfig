@@ -622,6 +622,16 @@ config ALIF_COMPARATOR
 	  the kernel, or M if you want it built as a loadable module. If unsure,
 	  say N.
 
+config CH201
+	tristate "TDK InvenSense CH201 ultrasonic sensor"
+	depends on I2C
+	depends on GPIOLIB
+	help
+	  Minimal transport driver for CH201 ultrasonic sensor.
+	  All device logic is handled in userspace (SonicLib).
+	  Created the driver in accordance with Linux BSP package in SonicLib.
+	  Driver is handling the interrupt, gpio control and i2c transfer.
+
 source "drivers/misc/c2port/Kconfig"
 source "drivers/misc/eeprom/Kconfig"
 source "drivers/misc/cb710/Kconfig"
