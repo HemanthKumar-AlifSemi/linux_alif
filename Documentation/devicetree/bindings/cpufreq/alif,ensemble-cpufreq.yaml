@@ -1,0 +1,48 @@
+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+%YAML 1.2
+---
+$id: http://devicetree.org/schemas/cpufreq/alif,ensemble-cpufreq.yaml#
+$schema: http://devicetree.org/meta-schemas/core.yaml#
+
+title: Alif Ensemble SoC CPUFreq Driver
+
+maintainers:
+  - Pankaj Pandey <pankaj.pandey@alifsemi.com>
+
+description: |
+  The Alif Ensemble CPUFreq driver provides dynamic CPU frequency scaling.
+  The driver supports frequency scaling from 800 MHz down to 25 MHz using a
+  programmable clock divider.
+
+  The driver integrates with the Linux clock framework and uses the
+  HOSTCPUCLK_DIV1 register to control the CPU clock divider. It supports 32
+  discrete frequency steps derived from the 800 MHz PLL clock source.
+
+  The driver internally accesses the CPU clock through the clock framework
+  using exported functions from the clock driver (ensemble_cpu_clk_set_rate
+  and ensemble_cpu_clk_get_rate).
+
+properties:
+  compatible:
+    const: alif,ensemble-cpufreq
+
+  clock-frequency:
+    description: |
+      Initial CPU clock frequency in Hz. This is used as the boot default
+      frequency when the driver initializes. Must match the actual hardware
+      boot frequency configured by the bootloader or firmware.
+
+required:
+  - compatible
+  - clock-frequency
+
+additionalProperties: false
+
+examples:
+  - |
+    // CPUFreq device node with clock-frequency
+    ensemble_cpufreq: cpufreq {
+        compatible = "alif,ensemble-cpufreq";
+        clock-frequency = <800000000>;  /* 800 MHz boot default */
+        status = "disabled";
+    };
