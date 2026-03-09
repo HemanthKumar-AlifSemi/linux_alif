@@ -18,10 +18,13 @@
 #include <linux/init.h>
 #include <linux/io.h>
 #include <linux/module.h>
+#include <linux/mutex.h>
 #include <linux/of.h>
 #include <linux/platform_device.h>
 #include <linux/rtc.h>
 #include <linux/slab.h>
+#include <linux/capability.h>
+#include <linux/kstrtox.h>
 
 /* RTC CSR Registers */
 #define RTC_CCVR			0x00
@@ -37,17 +40,147 @@
 #define RTC_STAT_BIT			BIT(0)
 #define RTC_RSTAT			0x14
 #define RTC_EOI				0x18
-#define RTC_VER				0x1C
-#define RTC_CPCR			0x20
-#define COUNTER_PRESCALER_VALUE		32768
+#define RTC_COMP_VERSION		0x1C
+#define RTC_CPSR			0x20
+
+/* Prescaler: 16-bit field (bits 15:0), valid range 1-65535 */
+#define RTC_CPSR_MASK			0xFFFF
+#define COUNTER_PRESCALER_MIN		1
+#define COUNTER_PRESCALER_MAX		65535
 
 struct ensemble_rtc_dev {
 	struct rtc_device *rtc;
-	struct device *dev;
 	void __iomem *csr_base;
 	struct clk *clk;
-	unsigned int irq_wake;
-	unsigned int irq_enabled;
+	struct mutex lock;	/* Serializes RTC_CCR and RTC_CPSR access */
+};
+
+/*
+ * ensemble_rtc_set_prescaler - Safely update the prescaler register.
+ *
+ * Disables the prescaler, writes the new value (masked to 16 bits),
+ * then re-enables prescaler and counter.
+ *
+ * Caller must hold pdata->lock.
+ */
+static void ensemble_rtc_set_prescaler(struct ensemble_rtc_dev *pdata, u32 val)
+{
+	u32 ccr;
+
+	/* Disable prescaler and counter */
+	ccr = readl(pdata->csr_base + RTC_CCR);
+	ccr &= ~(RTC_CCR_PSCLREN | RTC_CCR_EN);
+	writel(ccr, pdata->csr_base + RTC_CCR);
+
+	/* Write new prescaler value, masked to 16-bit register width */
+	writel(val & RTC_CPSR_MASK, pdata->csr_base + RTC_CPSR);
+
+	/* Re-enable prescaler and counter */
+	ccr |= RTC_CCR_PSCLREN | RTC_CCR_EN;
+	writel(ccr, pdata->csr_base + RTC_CCR);
+}
+
+static ssize_t prescaler_show(struct device *dev,
+			      struct device_attribute *attr, char *buf)
+{
+	struct ensemble_rtc_dev *pdata = dev_get_drvdata(dev->parent);
+	u32 val;
+
+	mutex_lock(&pdata->lock);
+	/* Read prescaler value directly from hardware register */
+	val = readl(pdata->csr_base + RTC_CPSR) & RTC_CPSR_MASK;
+	mutex_unlock(&pdata->lock);
+
+	return sysfs_emit(buf, "%u\n", val);
+}
+
+static ssize_t prescaler_store(struct device *dev,
+			       struct device_attribute *attr,
+			       const char *buf, size_t count)
+{
+	struct ensemble_rtc_dev *pdata = dev_get_drvdata(dev->parent);
+	u32 val;
+	int ret;
+
+	/* Changing the prescaler alters RTC tick rate (timekeeping) */
+	if (!capable(CAP_SYS_TIME))
+		return -EPERM;
+
+	ret = kstrtou32(buf, 0, &val);
+	if (ret)
+		return ret;
+
+	if (val < COUNTER_PRESCALER_MIN || val > COUNTER_PRESCALER_MAX) {
+		dev_dbg(dev, "prescaler value %u out of range [%u-%u]\n",
+			val, COUNTER_PRESCALER_MIN, COUNTER_PRESCALER_MAX);
+		return -EINVAL;
+	}
+
+	mutex_lock(&pdata->lock);
+	ensemble_rtc_set_prescaler(pdata, val);
+	mutex_unlock(&pdata->lock);
+	return count;
+}
+
+static DEVICE_ATTR_RW(prescaler);
+
+static ssize_t counter_wrap_show(struct device *dev,
+				 struct device_attribute *attr, char *buf)
+{
+	struct ensemble_rtc_dev *pdata = dev_get_drvdata(dev->parent);
+	u32 val;
+
+	mutex_lock(&pdata->lock);
+	val = !!(readl(pdata->csr_base + RTC_CCR) & RTC_CCR_WEN);
+	mutex_unlock(&pdata->lock);
+
+	return sysfs_emit(buf, "%u\n", val);
+}
+
+static ssize_t counter_wrap_store(struct device *dev,
+				  struct device_attribute *attr,
+				  const char *buf, size_t count)
+{
+	struct ensemble_rtc_dev *pdata = dev_get_drvdata(dev->parent);
+	u32 ccr, val;
+	int ret;
+
+	/* Changing wrap mode alters counter behavior on alarm match */
+	if (!capable(CAP_SYS_TIME))
+		return -EPERM;
+
+	ret = kstrtou32(buf, 0, &val);
+	if (ret)
+		return ret;
+
+	if (val > 1) {
+		dev_dbg(dev, "counter_wrap: invalid value %u (use 0 or 1)\n",
+			val);
+		return -EINVAL;
+	}
+
+	mutex_lock(&pdata->lock);
+	ccr = readl(pdata->csr_base + RTC_CCR);
+	if (val)
+		ccr |= RTC_CCR_WEN;
+	else
+		ccr &= ~RTC_CCR_WEN;
+	writel(ccr, pdata->csr_base + RTC_CCR);
+	mutex_unlock(&pdata->lock);
+
+	return count;
+}
+
+static DEVICE_ATTR_RW(counter_wrap);
+
+static struct attribute *ensemble_rtc_attrs[] = {
+	&dev_attr_prescaler.attr,
+	&dev_attr_counter_wrap.attr,
+	NULL,
+};
+
+static const struct attribute_group ensemble_rtc_attr_group = {
+	.attrs = ensemble_rtc_attrs,
 };
 
 static int ensemble_rtc_read_time(struct device *dev, struct rtc_time *tm)
@@ -76,17 +209,23 @@ static int ensemble_rtc_set_time(struct device *dev, struct rtc_time *tm)
 static int ensemble_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 {
 	struct ensemble_rtc_dev *pdata = dev_get_drvdata(dev);
+	u32 ccr, cmr;
 
-	/* If possible, CMR should be read here */
-	rtc_time64_to_tm(0, &alrm->time);
-	alrm->enabled = readl(pdata->csr_base + RTC_CCR) & RTC_CCR_IE;
+	mutex_lock(&pdata->lock);
+	cmr = readl(pdata->csr_base + RTC_CMR);
+	ccr = readl(pdata->csr_base + RTC_CCR);
+	mutex_unlock(&pdata->lock);
+
+	rtc_time64_to_tm(cmr, &alrm->time);
+	alrm->enabled = !!(ccr & RTC_CCR_IE);
 
 	return 0;
 }
 
-static int ensemble_rtc_alarm_irq_enable(struct device *dev, u32 enabled)
+/* Caller must hold pdata->lock */
+static void ensemble_rtc_alarm_irq_set(struct ensemble_rtc_dev *pdata,
+				       u32 enabled)
 {
-	struct ensemble_rtc_dev *pdata = dev_get_drvdata(dev);
 	u32 ccr;
 
 	ccr = readl(pdata->csr_base + RTC_CCR);
@@ -98,6 +237,15 @@ static int ensemble_rtc_alarm_irq_enable(struct device *dev, u32 enabled)
 		ccr |= RTC_CCR_MASK;
 	}
 	writel(ccr, pdata->csr_base + RTC_CCR);
+}
+
+static int ensemble_rtc_alarm_irq_enable(struct device *dev, u32 enabled)
+{
+	struct ensemble_rtc_dev *pdata = dev_get_drvdata(dev);
+
+	mutex_lock(&pdata->lock);
+	ensemble_rtc_alarm_irq_set(pdata, enabled);
+	mutex_unlock(&pdata->lock);
 
 	return 0;
 }
@@ -106,9 +254,10 @@ static int ensemble_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 {
 	struct ensemble_rtc_dev *pdata = dev_get_drvdata(dev);
 
+	mutex_lock(&pdata->lock);
 	writel((u32)rtc_tm_to_time64(&alrm->time), pdata->csr_base + RTC_CMR);
-
-	ensemble_rtc_alarm_irq_enable(dev, alrm->enabled);
+	ensemble_rtc_alarm_irq_set(pdata, alrm->enabled);
+	mutex_unlock(&pdata->lock);
 
 	return 0;
 }
@@ -147,7 +296,7 @@ static int ensemble_rtc_probe(struct platform_device *pdev)
 	if (!pdata)
 		return -ENOMEM;
 	platform_set_drvdata(pdev, pdata);
-	pdata->dev = &pdev->dev;
+	mutex_init(&pdata->lock);
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	pdata->csr_base = devm_ioremap_resource(&pdev->dev, res);
@@ -177,15 +326,6 @@ static int ensemble_rtc_probe(struct platform_device *pdev)
 	if (ret)
 		return ret;
 
-	/*
-	 * The rtc clock should be at 32.768KHz.
-	 * Set the prescaler to 32768 so that the counter is
-	 * incremented every second.
-	 * Turn on the clock.
-	 */
-	writel(COUNTER_PRESCALER_VALUE, pdata->csr_base + RTC_CPCR);
-	writel(RTC_CCR_PSCLREN | RTC_CCR_EN, pdata->csr_base + RTC_CCR);
-
 	ret = device_init_wakeup(&pdev->dev, 1);
 	if (ret) {
 		clk_disable_unprepare(pdata->clk);
@@ -195,8 +335,21 @@ static int ensemble_rtc_probe(struct platform_device *pdev)
 	pdata->rtc->ops = &ensemble_rtc_ops;
 	pdata->rtc->range_max = U32_MAX;
 
+	/* Add sysfs attributes (prescaler, counter_wrap) to RTC class device */
+	ret = rtc_add_group(pdata->rtc, &ensemble_rtc_attr_group);
+	if (ret) {
+		dev_err(&pdev->dev, "Failed to create sysfs group: %d\n", ret);
+		device_init_wakeup(&pdev->dev, 0);
+		clk_disable_unprepare(pdata->clk);
+		return ret;
+	}
+
+	dev_info(&pdev->dev, "DW APB RTC version: 0x%08x\n",
+		 readl(pdata->csr_base + RTC_COMP_VERSION));
+
 	ret = devm_rtc_register_device(pdata->rtc);
 	if (ret) {
+		device_init_wakeup(&pdev->dev, 0);
 		clk_disable_unprepare(pdata->clk);
 		return ret;
 	}
