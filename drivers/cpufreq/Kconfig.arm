@@ -15,6 +15,17 @@ config ARM_ALLWINNER_SUN50I_CPUFREQ_NVMEM
 	  To compile this driver as a module, choose M here: the
 	  module will be called sun50i-cpufreq-nvmem.
 
+config ARM_ENSEMBLE_CPUFREQ
+	tristate "Alif Ensemble Cortex-A32 CPUFreq support"
+	depends on ARCH_ENSEMBLE && COMMON_CLK
+	help
+	  This adds the CPUFreq driver for Alif Semiconductor Ensemble
+	  SoCs with dual Cortex-A32 cores. Frequency scaling is done
+	  via the CGU clock divider without requiring power management
+	  firmware.
+
+	  If in doubt, say N.
+
 config ARM_APPLE_SOC_CPUFREQ
 	tristate "Apple Silicon SoC CPUFreq support"
 	depends on ARCH_APPLE || (COMPILE_TEST && 64BIT)
