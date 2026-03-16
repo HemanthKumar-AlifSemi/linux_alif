@@ -2068,6 +2068,7 @@ F:	drivers/regulator/ensemble-regulator.c
 F:	drivers/rpmsg/rpmsg_arm_mailbox.c
 F:	drivers/rtc/rtc-dw-apb.c
 F:	drivers/usb/dwc3/dwc3-ensemble.c
+F:	include/linux/clk/ensemble-clk.h
 F:	sound/soc/alif/*
 F:	sound/soc/codecs/t5848.c
 

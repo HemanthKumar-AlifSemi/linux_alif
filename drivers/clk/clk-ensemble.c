@@ -16,20 +16,106 @@
 #include <linux/of_address.h>
 #include <linux/of_irq.h>
 #include <linux/sizes.h>
+#include <linux/clk/ensemble-clk.h>
 #include <dt-bindings/clock/alif,ensemble-clock.h>
 
 #define CCPSLV_BASE				0x4902F000
 #define CCPMST_BASE				0x4903F000
 #define CGU_BASE				0x1A602000
 #define VBAT_BASE				0x1A609000
+#define CLKCTL_SYS_BASE				0x1A010000
+#define HOSTCPUCLK_CTRL				0x800
+#define HOSTCPUCLK_DIV1				0x808
 #define RTC_CLK_DIVIDER				14648
 #define PCLK_FORCE				(1 << 30)
 #define IPCLK_FORCE				(1 << 31)
 #define HFXO_76M8_CLK				76800000
 #define EXT_AUDIO_CLK				76800000
+#define HOSTCPUCLK_DIV_MASK			0x1F
 
 static struct clk_hw **hws;
 static struct clk_hw_onecell_data *clk_hw_data;
+static void __iomem *clkctl_sys_base;
+static unsigned long pll_clk1_rate;
+
+/*
+ * Custom CPU clock structure for dynamic rate reading.
+ * The standard clk_divider caches the rate, but we need clk_summary
+ * to show the actual current frequency by reading the register.
+ */
+struct ensemble_cpu_clk {
+	struct clk_hw hw;
+	void __iomem *reg;
+	spinlock_t *lock; /* Protects CPU clock rate updates */
+};
+
+#define to_ensemble_cpu_clk(_hw) container_of(_hw, struct ensemble_cpu_clk, hw)
+
+static unsigned long ensemble_cpu_clk_recalc_rate(struct clk_hw *hw,
+						  unsigned long parent_rate)
+{
+	struct ensemble_cpu_clk *cpu = to_ensemble_cpu_clk(hw);
+	u32 reg, div;
+
+	reg = readl(cpu->reg);
+	div = (reg & HOSTCPUCLK_DIV_MASK) + 1;  /* Zero-based: reg_val + 1 = divider */
+
+	return parent_rate / div;
+}
+
+static long ensemble_cpu_clk_round_rate(struct clk_hw *hw,
+					unsigned long rate,
+					unsigned long *parent_rate)
+{
+	unsigned long div;
+
+	if (rate == 0)
+		return *parent_rate;
+
+	if (rate == 0)
+		div = 1;
+	else
+		div = DIV_ROUND_CLOSEST(*parent_rate, rate);
+
+	return *parent_rate / div;
+}
+
+static int ensemble_cpu_clk_hw_set_rate(struct clk_hw *hw,
+					unsigned long rate,
+					unsigned long parent_rate)
+{
+	struct ensemble_cpu_clk *cpu = to_ensemble_cpu_clk(hw);
+	unsigned long flags;
+	u32 div, reg;
+
+	if (rate == 0)
+		div = 1;
+	else
+		div = DIV_ROUND_CLOSEST(parent_rate, rate);
+
+	spin_lock_irqsave(cpu->lock, flags);
+
+	reg = readl(cpu->reg);
+	reg &= ~(HOSTCPUCLK_DIV_MASK);
+	reg |= (div - 1) & HOSTCPUCLK_DIV_MASK;
+	writel(reg, cpu->reg);
+
+	/* Readback barrier */
+	(void)readl(cpu->reg);
+
+	spin_unlock_irqrestore(cpu->lock, flags);
+
+	return 0;
+}
+
+static const struct clk_ops ensemble_cpu_clk_ops = {
+	.recalc_rate = ensemble_cpu_clk_recalc_rate,
+	.round_rate = ensemble_cpu_clk_round_rate,
+	.set_rate = ensemble_cpu_clk_hw_set_rate,
+};
+
+static struct ensemble_cpu_clk *cpu_clk_data;
+
 static const char *const uart_clk_src_sels[] = { "hfxo", "syst_pclk", };
 static const char *const canfd_clk_src_sels[] = { "hfosc_clk", "160m_clk", };
 static const char *const audio_clk_src_sels[] = { "cgu_76m8_clk", "audio_clk", };
@@ -172,6 +258,7 @@ static void __init ensemble_clocks_init(struct device_node *ccps_node)
 	struct device_node *np = ccps_node;
 	void __iomem *base, *cgu_base, *ccpmst_base, *vbat_base;
 	struct clk *clk;
+	int ret;
 
 	base = ioremap(CCPSLV_BASE, SZ_4K);
 	cgu_base = ioremap(CGU_BASE, SZ_256);
@@ -453,11 +540,125 @@ static void __init ensemble_clocks_init(struct device_node *ccps_node)
 	hws[ENSEMBLE_DMA_ENA_CLK] = ensemble_clk_hw_gate("dma_clk",
 				"syst_aclk", ccpmst_base + 0xC, 4);
 
+	/*
+	 * Register CPU clock with custom ops for dynamic rate reading.
+	 * The CPU clock is derived from pll_clk1 (800 MHz) divided by
+	 * HOSTCPUCLK_DIV1 register at CLKCTL_SYS_BASE + 0x808.
+	 * Bits [4:0] = divider value (zero-based: 0=div1, 1=div2, ..., 31=div32)
+	 *
+	 * We use a custom clock type instead of clk_hw_register_divider so that
+	 * clk_summary always shows the actual current frequency by reading
+	 * the register in recalc_rate.
+	 */
+	clkctl_sys_base = ioremap(CLKCTL_SYS_BASE, SZ_4K);
+	if (!clkctl_sys_base) {
+		pr_err("ensemble-clk: failed to ioremap CLKCTL_SYS_BASE\n");
+		goto err_check_hws;
+	}
+
+	static const char * const cpu_clk_parent[] = { "pll_clk1" };
+	static struct clk_init_data cpu_clk_init = {
+		.name         = "cpu_clk",
+		.ops          = &ensemble_cpu_clk_ops,
+		.parent_names = cpu_clk_parent,
+		.num_parents  = 1,
+		.flags        = 0,
+	};
+
+	cpu_clk_data = kzalloc(sizeof(*cpu_clk_data), GFP_KERNEL);
+	if (!cpu_clk_data)
+		goto err_unmap;
+
+	cpu_clk_data->reg  = clkctl_sys_base + HOSTCPUCLK_DIV1;
+	cpu_clk_data->lock = &ensemble_ccps_lock;
+	cpu_clk_data->hw.init = &cpu_clk_init;
+
+	ret = clk_hw_register(NULL, &cpu_clk_data->hw);
+	if (ret) {
+		pr_err("ensemble-clk: failed to register CPU clock: %d\n", ret);
+		goto err_free;
+	}
+
+	hws[ENSEMBLE_CPU_CLK] = &cpu_clk_data->hw;
+	pll_clk1_rate = clk_hw_get_rate(hws[ENSEMBLE_PLL_CLK1]);
+	pr_info("ensemble-clk: CPU clock registered, PLL rate=%lu Hz\n", pll_clk1_rate);
+
+err_check_hws:
 	for (int i = 0; i < ENSEMBLE_CLK_END; i++) {
 		if (IS_ERR(hws[i]))
 			pr_err("ensemble clk %u: register failed with %ld\n",
-			       i, PTR_ERR(hws[i]));
+			i, PTR_ERR(hws[i]));
 	}
-	of_clk_add_hw_provider(np, of_clk_hw_onecell_get, clk_hw_data);
+
+	if (!clk_hw_data) {
+		pr_err("ensemble-clk: clk_hw_data is NULL, cannot register provider\n");
+		return;
+	}
+
+	ret = of_clk_add_hw_provider(np, of_clk_hw_onecell_get, clk_hw_data);
+	if (ret)
+		pr_err("ensemble-clk: failed to add hw provider: %d\n", ret);
+
+	return;
+
+err_free:
+	kfree(cpu_clk_data);
+	cpu_clk_data = NULL;
+
+err_unmap:
+	iounmap(clkctl_sys_base);
+	clkctl_sys_base = NULL;
+	goto err_check_hws;
 }
+
+/**
+ * ensemble_cpu_clk_set_rate - Set CPU clock frequency
+ * @rate_hz: Target frequency in Hz
+ *
+ * This function is called by the cpufreq driver to change the CPU frequency.
+ * It uses the clock framework's clk_set_rate() which calls our custom
+ * set_rate ops to program the HOSTCPUCLK_DIV1 register.
+ *
+ * Returns 0 on success, negative error code on failure.
+ */
+int ensemble_cpu_clk_set_rate(unsigned long rate_hz)
+{
+	struct clk *cpu_clk;
+	int ret;
+
+	if (!cpu_clk_data || !hws[ENSEMBLE_CPU_CLK])
+		return -ENODEV;
+
+	cpu_clk = hws[ENSEMBLE_CPU_CLK]->clk;
+	if (!cpu_clk)
+		return -ENODEV;
+
+	ret = clk_set_rate(cpu_clk, rate_hz);
+	if (ret)
+		pr_err("ensemble-clk: failed to set CPU clock to %lu Hz: %d\n",
+		       rate_hz, ret);
+
+	return ret;
+}
+EXPORT_SYMBOL_GPL(ensemble_cpu_clk_set_rate);
+
+/**
+ * ensemble_cpu_clk_get_rate - Get current CPU clock frequency
+ *
+ * Uses the clock framework to get the current CPU clock rate.
+ * Our custom recalc_rate callback reads the HOSTCPUCLK_DIV1 register
+ * to calculate the actual frequency.
+ *
+ * Returns the current CPU clock frequency in Hz, or 0 on error.
+ */
+unsigned long ensemble_cpu_clk_get_rate(void)
+{
+	if (!cpu_clk_data || !hws[ENSEMBLE_CPU_CLK])
+		return 0;
+
+	/* clk_hw_get_rate calls our recalc_rate which reads the register */
+	return clk_hw_get_rate(hws[ENSEMBLE_CPU_CLK]);
+}
+EXPORT_SYMBOL_GPL(ensemble_cpu_clk_get_rate);
+
 CLK_OF_DECLARE(ensemble, "alif,ensemble-ccps", ensemble_clocks_init);
