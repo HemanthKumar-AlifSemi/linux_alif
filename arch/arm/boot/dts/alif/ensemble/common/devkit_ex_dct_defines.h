@@ -122,6 +122,9 @@
 /* CPU Defines */
 #define CPU1_STATUS "okay"
 
+/* CPUFreq Defines */
+#define CPUFREQ_STATUS "disabled"
+
 /* Memory Defines */
 #define MEM_STITCH_STATUS "okay"
 #define MEM_HYPER_STATUS  "disabled"

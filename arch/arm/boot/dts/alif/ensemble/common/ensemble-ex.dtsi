@@ -35,6 +35,12 @@
 		};
 	};
 
+	ensemble_cpufreq: cpufreq {
+		compatible = "alif,ensemble-cpufreq";
+		clock-frequency = <800000000>;  /* 800 MHz boot default */
+		status = "disabled";
+	};
+
 	psci {
 		compatible = "arm,psci-1.0";
 		method = "smc";

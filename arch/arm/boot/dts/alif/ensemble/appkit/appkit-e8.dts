@@ -74,6 +74,10 @@
 	status = CPU1_STATUS;
 };
 
+&ensemble_cpufreq {
+	status = CPUFREQ_STATUS;
+};
+
 &mem_stitch {
 	status = MEM_STITCH_STATUS;
 };
