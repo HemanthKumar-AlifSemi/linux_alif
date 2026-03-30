@@ -515,6 +515,7 @@
 			phy-handle = <&phy2>;
 			phy-mode = "rmii";
 			mac-address = [92 60 04 02 c3 e6];
+			snps,force_thresh_dma_mode;
 			status = "disabled";
 			mdio{
 				#address-cells = <0x1>;
