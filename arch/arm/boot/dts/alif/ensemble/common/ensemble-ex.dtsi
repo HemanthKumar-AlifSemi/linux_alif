@@ -48,8 +48,9 @@
 
 	mem_stitch: memory1@2000000 {
 		device_type = "memory";
-		reg = <0x02000000 0x7DE000>;
+		reg = <0x02000000 0x7DD000>;
 		status = "disabled";
+			/* 0x1000 @ 0x027DD000 reserved for IPC shared memory */
 			/* 0x20000 @ 0x027DE000 reserved for arm-tf */
 			/* 0x1000 @ 0x027FE000 reserved for MHU services */
 	};
@@ -58,15 +59,17 @@
 		device_type = "memory";
 		reg = <0xa0000000 0x4000000>;
 		status = "disabled";
+			/* 0x1000 @ 0x027DD000 reserved for IPC shared memory */
 			/* 0x20000 @ 0x027DE000 reserved for arm-tf */
 			/* 0x1000 @ 0x027FE000 reserved for MHU services */
 	};
 
 	mem_hyp_stitch: memory2@2000000 {
 		device_type = "memory";
-		reg = <0x02000000 0x7DE000>,
+		reg = <0x02000000 0x7DD000>,
 			<0x20000000 0x4000000>;
 		status = "disabled";
+			/* 0x1000 @ 0x027DD000 reserved for IPC shared memory */
 			/* 0x20000 @ 0x027DE000 reserved for arm-tf */
 			/* 0x1000 @ 0x027FE000 reserved for MHU services */
 	};
