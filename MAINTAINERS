@@ -2031,6 +2031,7 @@ M:	Aravind Krishnan M <aravind.krishnan@alifsemi.com>
 F:	Documentation/devicetree/bindings/arm/alif/alif.yaml
 F:	Documentation/devicetree/bindings/misc/alif,adc-dac6.yaml
 F:	Documentation/devicetree/bindings/counter/alif,alif-utimer.yaml
+F:	Documentation/devicetree/bindings/cpufreq/alif,ensemble-cpufreq.yaml
 F:	Documentation/devicetree/bindings/crypto/alif,alif-crccode.yaml
 F:	Documentation/devicetree/bindings/dma/alif,event-router.yaml
 F:	Documentation/devicetree/bindings/hwlock/alif,hwsem.yaml
@@ -2054,6 +2055,7 @@ F:	arch/arm/mach-ensemble/adc_dac6.c
 F:	arch/arm/mach-ensemble/sdhci-alif-reset.c
 F:	drivers/counter/register_offsets.h
 F:	drivers/counter/utimer.c
+F:	drivers/cpufreq/ensemble-cpufreq.c
 F:	drivers/crypto/alif-crc.c
 F:	drivers/dma/alif/*
 F:	drivers/hwspinlock/alif_hwsem.c
@@ -2067,6 +2069,7 @@ F:	drivers/regulator/ensemble-regulator.c
 F:	drivers/rpmsg/rpmsg_arm_mailbox.c
 F:	drivers/rtc/rtc-dw-apb.c
 F:	drivers/usb/dwc3/dwc3-ensemble.c
+F:	include/linux/clk/ensemble-clk.h
 F:	sound/soc/alif/*
 F:	sound/soc/codecs/t5848.c
 

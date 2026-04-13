@@ -70,6 +70,10 @@
 
 };
 
+&ensemble_cpufreq {
+	status = CPUFREQ_STATUS;
+};
+
 &cpu1 {
 	status = CPU1_STATUS;
 };

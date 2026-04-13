@@ -35,6 +35,12 @@
 		};
 	};
 
+	ensemble_cpufreq: cpufreq {
+		compatible = "alif,ensemble-cpufreq";
+		clock-frequency = <800000000>;  /* 800 MHz boot default */
+		status = "disabled";
+	};
+
 	psci {
 		compatible = "arm,psci-1.0";
 		method = "smc";
@@ -42,8 +48,9 @@
 
 	mem_stitch: memory1@2000000 {
 		device_type = "memory";
-		reg = <0x02000000 0x7DE000>;
+		reg = <0x02000000 0x7DD000>;
 		status = "disabled";
+			/* 0x1000 @ 0x027DD000 reserved for IPC shared memory */
 			/* 0x20000 @ 0x027DE000 reserved for arm-tf */
 			/* 0x1000 @ 0x027FE000 reserved for MHU services */
 	};
@@ -52,15 +59,17 @@
 		device_type = "memory";
 		reg = <0xa0000000 0x4000000>;
 		status = "disabled";
+			/* 0x1000 @ 0x027DD000 reserved for IPC shared memory */
 			/* 0x20000 @ 0x027DE000 reserved for arm-tf */
 			/* 0x1000 @ 0x027FE000 reserved for MHU services */
 	};
 
 	mem_hyp_stitch: memory2@2000000 {
 		device_type = "memory";
-		reg = <0x02000000 0x7DE000>,
+		reg = <0x02000000 0x7DD000>,
 			<0x20000000 0x4000000>;
 		status = "disabled";
+			/* 0x1000 @ 0x027DD000 reserved for IPC shared memory */
 			/* 0x20000 @ 0x027DE000 reserved for arm-tf */
 			/* 0x1000 @ 0x027FE000 reserved for MHU services */
 	};
@@ -509,6 +518,7 @@
 			phy-handle = <&phy2>;
 			phy-mode = "rmii";
 			mac-address = [92 60 04 02 c3 e6];
+			snps,force_thresh_dma_mode;
 			status = "disabled";
 			mdio{
 				#address-cells = <0x1>;
